@@ -1,1 +1,4 @@
 .DS_Store
+TestProject1/bin
+TestProject1/obj
+.vscode

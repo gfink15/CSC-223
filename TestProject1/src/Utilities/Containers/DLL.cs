@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Diagnostics.Tracing;
+using System.Text;
 
 
 /**
@@ -74,14 +75,14 @@ public class DLL<T> : IEnumerable<T>, IList<T>
     }
     public override string ToString()
     {
-        string output = "[";
+        StringBuilder output = new StringBuilder();
         DNode current = head;
         for (int i = 0; i < sz; i++)
         {
             current = current.next;
-            output += current.data + ", ";
+            output.Append(current.data);
         }
-        return output + "]";
+        return output.ToString();
     }
     public bool Remove(T item)
     {

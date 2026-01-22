@@ -1,5 +1,6 @@
 
 
+using System.Collections;
 using System.Diagnostics.Tracing;
 
 
@@ -13,27 +14,27 @@ using System.Diagnostics.Tracing;
  */
 public class DLL<T> : IEnumerable<T>, IList<T>
 {
-    public class DNode<T>
+    public class DNode
     {
-        public DNode<T> next;
-        public DNode<T> prev;
+        public DNode next;
+        public DNode prev;
         public T data;
         public DNode() {}
     }
-    private DNode<T> head;
-    private DNode<T> tail;
+    private DNode head;
+    private DNode tail;
     private int sz = 0;
 
     public DLL()
     {
-        head = new DNode<T>();
-        tail = new DNode<T>();
+        head = new DNode();
+        tail = new DNode();
         head.next = tail;
         tail.prev = head;
     }
-    private void Insert(DNode<T> node, T item)
+    private void Insert(DNode node, T item)
     {
-        DNode<T> temp = new DNode<T>();
+        DNode temp = new DNode();
         node.prev.next = temp;
         temp.prev = node.prev;
         temp.next = node;
@@ -41,15 +42,15 @@ public class DLL<T> : IEnumerable<T>, IList<T>
         temp.data = item;
         sz++;
     }
-    private void Remove(DNode<T> node)
+    private void Remove(DNode node)
     {
         node.prev.next = node.next;
         node.next.prev = node.prev;
         sz--;
     }
-    private DNode<T> GetNode(int index)
+    private DNode GetNode(int index)
     {
-        DNode<T> current = head;
+        DNode current = head;
         if (index >= sz || index < 0) throw new ArgumentOutOfRangeException("Index out of range");
         for (int i = 0; i <= index; i++)
         {
@@ -59,7 +60,7 @@ public class DLL<T> : IEnumerable<T>, IList<T>
     }
     public bool Contains(T item)
     {
-        DNode<T> current = head;
+        DNode current = head;
         for (int i = 0; i < sz; i++)
         {
             current = current.next;
@@ -74,7 +75,7 @@ public class DLL<T> : IEnumerable<T>, IList<T>
     public override string ToString()
     {
         string output = "[";
-        DNode<T> current = head;
+        DNode current = head;
         for (int i = 0; i < sz; i++)
         {
             current = current.next;
@@ -84,7 +85,7 @@ public class DLL<T> : IEnumerable<T>, IList<T>
     }
     public bool Remove(T item)
     {
-        DNode<T> current = head;
+        DNode current = head;
         for (int i = 0; i < sz; i++)
         {
             current = current.next;
@@ -152,7 +153,7 @@ public class DLL<T> : IEnumerable<T>, IList<T>
     public void Insert(int index, T item)
     {
         if (index >= sz || index < 0) throw new ArgumentOutOfRangeException("Index out of range");
-        DNode<T> current = head;
+        DNode current = head;
         for (int i = 0; i <= index; i++)
         {
             current = current.next;
@@ -161,7 +162,7 @@ public class DLL<T> : IEnumerable<T>, IList<T>
     }
     public int IndexOf(T item)
     {
-        DNode<T> current = head;
+        DNode current = head;
         for (int i = 0; i < sz; i++)
         {
             current = current.next;
@@ -180,7 +181,7 @@ public class DLL<T> : IEnumerable<T>, IList<T>
     public void RemoveAt(int index)
     {
         if (index >= sz || index < 0) throw new ArgumentOutOfRangeException("Index out of range");
-        DNode<T> current = head;
+        DNode current = head;
         for (int i = 0; i <= index; i++)
         {
             current = current.next;
@@ -199,10 +200,16 @@ public class DLL<T> : IEnumerable<T>, IList<T>
     }
     public IEnumerator<T> GetEnumerator()
     {
-        return false;
+        DNode current = head;
+        for (int i = 0; i < sz; i++)
+        {
+            current = current.next;
+            yield return current.data;
+        }
     }
-    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+
+    IEnumerator IEnumerable.GetEnumerator()
     {
-        return false;
+        return GetEnumerator();
     }
 }

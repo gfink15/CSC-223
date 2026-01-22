@@ -13,6 +13,13 @@ using System.Diagnostics.Tracing;
  */
 public class DLL<T> : IEnumerable<T>, IList<T>
 {
+    public class DNode<T>
+    {
+        public DNode<T> next;
+        public DNode<T> prev;
+        public T data;
+        public DNode() {}
+    }
     private DNode<T> head;
     private DNode<T> tail;
     private int sz = 0;
@@ -198,18 +205,4 @@ public class DLL<T> : IEnumerable<T>, IList<T>
     {
         return false;
     }
-}
-
-
-
-
-
-
-
- public class DNode<T>
-{
-    public DNode<T> next;
-    public DNode<T> prev;
-    public T data;
-    public DNode() {}
 }

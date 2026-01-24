@@ -96,3 +96,4 @@
 /Users/grahamfink/Desktop/CSC 223/TestProject1/obj/Debug/net8.0/TestProject1.pdb
 /Users/grahamfink/Desktop/CSC 223/TestProject1/obj/Debug/net8.0/TestProject1.genruntimeconfig.cache
 /Users/grahamfink/Desktop/CSC 223/TestProject1/obj/Debug/net8.0/ref/TestProject1.dll
+/Users/grahamfink/Desktop/CSC 223/TestProject1/obj/Debug/net8.0/TestProject1.sourcelink.json

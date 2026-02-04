@@ -52,7 +52,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     { 
         get 
         {
-            if (TryGetValueLocal(key, out TValue value)) return value;
+            if (TryGetValue(key, out TValue? value)) return value;
             else
             {
                 throw new KeyNotFoundException("Key does not exist");
@@ -60,7 +60,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
         }
         set
         {
-            if (ContainsKeyLocal(key))
+            if (ContainsKey(key))
             {
                 int keyIndex = _KeyDLL.IndexOf(key);
                 _ValueDLL[keyIndex] = value;
@@ -118,7 +118,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
         {
             if (_parent != null)
             {
-                return _parent.ContainsKeyLocal(key);
+                return _parent.ContainsKey(key);
             }
         }
         return false;
@@ -181,8 +181,8 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
         // Checking the conditions for processing and throwing exceptions if not met
-        if ((array.Length - arrayIndex) < _sz ) throw new ArgumentException();
         if (array == null) throw new ArgumentNullException();
+        if ((array.Length - arrayIndex) < _sz ) throw new ArgumentException();
         if (arrayIndex < 0) throw new ArgumentOutOfRangeException();
 
         // Go through the SymbolTable starting at index 0 to the end.
@@ -203,7 +203,10 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        throw new NotImplementedException();
+        for (int i = 0; i < _sz; i++)
+        {
+            yield return new KeyValuePair<TKey, TValue>(_KeyDLL[i], _ValueDLL[i]);
+        }
     }
 
     IEnumerator IEnumerable.GetEnumerator()

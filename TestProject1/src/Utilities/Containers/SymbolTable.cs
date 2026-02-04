@@ -4,7 +4,7 @@
  * Claude AI was only used for writing XML and inline comments.
  * 
  * @author Graham Fink, Mridul Agrawal
- * @date   1/28/2026
+ * @date   2/4/2026
  */
 
 using System.Collections;
@@ -83,14 +83,14 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
         return _KeyDLL.Contains(key);
     }
 
-    public bool TryGetValueLocal(TKey key, out TValue value)
+    public bool TryGetValueLocal(TKey key, out TValue? value)
     {
         if (ContainsKeyLocal(key))
         {
             int keyIndex = _KeyDLL.IndexOf(key);
             value = _ValueDLL[keyIndex];
 
-            if (value == null) return false;
+            if (value == null && this.Parent != null) return false;
 
             return true;
         }
@@ -101,7 +101,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
         }
     }
 
-    public void Add(TKey key, TValue value)
+    public void Add(TKey key, TValue? value)
     {
         if (ContainsKeyLocal(key)) throw new ArgumentException("Key already exists");
         else
@@ -120,16 +120,18 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
             {
                 return _parent.ContainsKey(key);
             }
+            return false;
         }
-        return false;
+        return true;
     }
 
     public bool Remove(TKey key)
     {
-        if (!ContainsKey(key)) throw new KeyNotFoundException("Key not found");
+        if (!ContainsKey(key)) return false;//throw new KeyNotFoundException("Key not found");
         int indexToRemove = _KeyDLL.IndexOf(key);
         _KeyDLL.RemoveAt(indexToRemove);
         _ValueDLL.RemoveAt(indexToRemove);
+        _sz--;
         return true;
     }
 
@@ -198,7 +200,8 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
 
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
-        return Remove(item.Key);
+        if (EqualityComparer<TValue>.Default.Equals(this[item.Key], item.Value)) return Remove(item.Key);
+        return false;
     }
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()

@@ -19,7 +19,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
 {
     private DLL<TKey> _KeyDLL = new DLL<TKey>();
     private DLL<TValue> _ValueDLL = new DLL<TValue>();
-    private SymbolTable<TKey, TValue> _parent;
+    private SymbolTable<TKey, TValue>? _parent;
     private int _sz = 0;
 
     public SymbolTable<TKey, TValue> Parent
@@ -71,7 +71,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
         }
     }
 
-    public SymbolTable(SymbolTable<TKey, TValue> parent)
+    public SymbolTable(SymbolTable<TKey, TValue>? parent)
     {
         _parent = parent;
     }
@@ -110,16 +110,23 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
 
     public bool ContainsKey(TKey key)
     {
-        return ContainsKeyLocal(key);
+        if (!ContainsKeyLocal(key))
+        {
+            if (_parent != null)
+            {
+                return _parent.ContainsKeyLocal(key);
+            }
+        }
+        return false;
     }
 
-    public bool Remove(TKey key) // not finished
+    public bool Remove(TKey key)
     {
-        if (!ContainsKeyLocal(key)) throw new KeyNotFoundException("Key not found");
+        if (!ContainsKey(key)) throw new KeyNotFoundException("Key not found");
         int indexToRemove = _KeyDLL.IndexOf(key);
         _KeyDLL.RemoveAt(indexToRemove);
         _ValueDLL.RemoveAt(indexToRemove);
-        return false;
+        return true;
     }
 
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
@@ -129,17 +136,27 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
 
     public void Add(KeyValuePair<TKey, TValue> item)
     {
-        throw new NotImplementedException();
+        Add(item.Key, item.Value);
     }
 
     public void Clear()
     {
-        throw new NotImplementedException();
+        _KeyDLL.Clear();
+        _ValueDLL.Clear();
+        _sz = 0;
     }
 
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
-        throw new NotImplementedException();
+        TValue v;
+        if (TryGetValue(item.Key, out v))
+        {
+            if (EqualityComparer<TValue>.Default.Equals(item.Value, v))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
@@ -149,7 +166,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
 
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
-        throw new NotImplementedException();
+        return Remove(item.Key);
     }
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()

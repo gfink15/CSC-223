@@ -89,6 +89,9 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
         {
             int keyIndex = _KeyDLL.IndexOf(key);
             value = _ValueDLL[keyIndex];
+
+            if (value == null) return false;
+
             return true;
         }
         else
@@ -132,13 +135,20 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
 
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {   
-        value = default;
-        if (!ContainsKeyLocal(key)) return false;
 
-        int indexToRemove = _KeyDLL.IndexOf(key);
+        if (key == null) throw new ArgumentNullException();
 
-        // Come back to this, this is the global TryGetValue
-        throw new NotImplementedException();
+
+        bool valueExists = this.TryGetValueLocal(key, out value);
+        if (valueExists == false)
+        {
+            if (this.Parent == null) return false;
+            else return this.Parent.TryGetValue(key, out value);
+        }
+        else
+        {
+            return true;
+        }
 
 
     }
@@ -175,9 +185,12 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
         if (array == null) throw new ArgumentNullException();
         if (arrayIndex < 0) throw new ArgumentOutOfRangeException();
 
+        // Go through the SymbolTable starting at index 0 to the end.
         for (int tableIndex = 0; tableIndex < _sz; tableIndex++)
         {
             var newPair = new KeyValuePair<TKey, TValue>(_KeyDLL[tableIndex], _ValueDLL[tableIndex]);
+
+            // Just add arrayIndex and tableIndex to get the next index to put pair at
             array[arrayIndex + tableIndex] = newPair;
         }
 

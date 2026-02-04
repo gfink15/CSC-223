@@ -8,6 +8,7 @@
  */
 
 using System.Collections;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
 using System.Text;
@@ -123,8 +124,16 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     }
 
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
-    {
+    {   
+        value = default;
+        if (!ContainsKeyLocal(key)) return false;
+
+        int indexToRemove = _KeyDLL.IndexOf(key);
+
+        // Come back to this, this is the global TryGetValue
         throw new NotImplementedException();
+
+
     }
 
     public void Add(KeyValuePair<TKey, TValue> item)
@@ -144,7 +153,17 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
 
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
-        throw new NotImplementedException();
+        // Checking the conditions for processing and throwing exceptions if not met
+        if ((array.Length - arrayIndex) < _sz ) throw new ArgumentException();
+        if (array == null) throw new ArgumentNullException();
+        if (arrayIndex < 0) throw new ArgumentOutOfRangeException();
+
+        for (int tableIndex = 0; tableIndex < _sz; tableIndex++)
+        {
+            var newPair = new KeyValuePair<TKey, TValue>(_KeyDLL[tableIndex], _ValueDLL[tableIndex]);
+            array[arrayIndex + tableIndex] = newPair;
+        }
+
     }
 
     public bool Remove(KeyValuePair<TKey, TValue> item)

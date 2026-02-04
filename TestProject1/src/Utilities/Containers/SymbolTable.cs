@@ -171,8 +171,8 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
         // Checking the conditions for processing and throwing exceptions if not met
-        if ((array.Length - arrayIndex) < _sz ) throw new ArgumentException();
         if (array == null) throw new ArgumentNullException();
+        if ((array.Length - arrayIndex) < _sz ) throw new ArgumentException();
         if (arrayIndex < 0) throw new ArgumentOutOfRangeException();
 
         for (int tableIndex = 0; tableIndex < _sz; tableIndex++)

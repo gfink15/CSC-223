@@ -8,10 +8,7 @@
  */
 
 using System.Collections;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Tracing;
-using System.Text;
 
 namespace Utilities.Containers;
 
@@ -24,9 +21,10 @@ namespace Utilities.Containers;
 /// <typeparam name="TValue">The type of values in the symbol table.</typeparam>
 public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
 {
+    // Parallel DLLs - keys[i] corresponds to values[i]
     private DLL<TKey> _KeyDLL = new DLL<TKey>();
     private DLL<TValue> _ValueDLL = new DLL<TValue>();
-    private SymbolTable<TKey, TValue>? _parent;
+    private readonly SymbolTable<TKey, TValue>? _parent;
     private int _sz = 0;
 
     /// <summary>
@@ -87,7 +85,8 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     public TValue this[TKey key]
     { 
         get 
-        {
+        {   
+            // Using the Global TryGetValue method to search through parents as well
             if (TryGetValue(key, out TValue? value)) return value;
             else
             {
@@ -96,7 +95,8 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
         }
         set
         {
-            if (ContainsKey(key))
+            // Using Local so that we only update/add in the current scope, unless specified with this.parent
+            if (ContainsKeyLocal(key))
             {
                 int keyIndex = _KeyDLL.IndexOf(key);
                 _ValueDLL[keyIndex] = value;
@@ -111,8 +111,8 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     /// <summary>
     /// Initializes a new instance of the <see cref="SymbolTable{TKey, TValue}"/> class with an optional parent scope.
     /// </summary>
-    /// <param name="parent">The parent symbol table for hierarchical scope lookup, or null for a root-level table.</param>
-    public SymbolTable(SymbolTable<TKey, TValue>? parent)
+    /// <param name="parent">The parent symbol table for hierarchical scope lookup. Defaults to null for a root-level table.</param>
+    public SymbolTable(SymbolTable<TKey, TValue>? parent = null)
     {
         _parent = parent;
     }
@@ -142,6 +142,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
             int keyIndex = _KeyDLL.IndexOf(key);
             value = _ValueDLL[keyIndex];
 
+            // If value is null and we have a parent, signal to check parent instead
             if (value == null && this.Parent != null) return false;
 
             return true;
@@ -177,6 +178,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     /// <returns><c>true</c> if the key exists in this table or any parent table; otherwise, <c>false</c>.</returns>
     public bool ContainsKey(TKey key)
     {
+        // Check local first, then recurse up the parent chain
         if (!ContainsKeyLocal(key))
         {
             if (_parent != null)
@@ -195,7 +197,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     /// <returns><c>true</c> if the element was successfully removed; otherwise, <c>false</c> if the key was not found.</returns>
     public bool Remove(TKey key)
     {
-        if (!ContainsKey(key)) return false;//throw new KeyNotFoundException("Key not found");
+        if (!ContainsKey(key)) return false; //throws new KeyNotFoundException("Key not found");
         int indexToRemove = _KeyDLL.IndexOf(key);
         _KeyDLL.RemoveAt(indexToRemove);
         _ValueDLL.RemoveAt(indexToRemove);
@@ -217,10 +219,10 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
 
 
         bool valueExists = this.TryGetValueLocal(key, out value);
-        if (valueExists == false)
+        if (!valueExists)
         {
-            if (this.Parent == null) return false;
-            else return this.Parent.TryGetValue(key, out value);
+            if (_parent == null) return false;
+            else return _parent.TryGetValue(key, out value);
         }
         else
         {
@@ -259,8 +261,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     /// <remarks>Searches parent tables if the key is not found locally.</remarks>
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
-        TValue? v;
-        if (TryGetValue(item.Key, out v))
+        if (TryGetValue(item.Key, out var v))
         {
             if (EqualityComparer<TValue>.Default.Equals(item.Value, v))
             {
@@ -280,10 +281,9 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     /// <exception cref="ArgumentException">Thrown when the array does not have enough space to hold all elements.</exception>
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
-        // Checking the conditions for processing and throwing exceptions if not met
-        if (array == null) throw new ArgumentNullException();
-        if ((array.Length - arrayIndex) < _sz ) throw new ArgumentException();
-        if (arrayIndex < 0) throw new ArgumentOutOfRangeException();
+        if (array == null) throw new ArgumentNullException("Array is null.");
+        if ((array.Length - arrayIndex) < _sz) throw new ArgumentException("Not enough space in array.");
+        if (arrayIndex < 0) throw new ArgumentOutOfRangeException("Array index cannot be negative.");
 
         // Go through the SymbolTable starting at index 0 to the end.
         for (int tableIndex = 0; tableIndex < _sz; tableIndex++)
@@ -303,6 +303,8 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     /// <returns><c>true</c> if the exact key-value pair was found and removed; otherwise, <c>false</c>.</returns>
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
+        if (!ContainsKeyLocal(item.Key)) return false;
+        // Only remove if both key AND value match (IDictionary contract)
         if (EqualityComparer<TValue>.Default.Equals(this[item.Key], item.Value)) return Remove(item.Key);
         return false;
     }

@@ -1508,7 +1508,7 @@ namespace Utilities.Containers.Tests
             var child = new SymbolTable<string, int>(parent);
             child.Add("d", 4);
             
-            Assert.Equal(4, child.Count); // 1 local + 0 (Count only counts local)
+            Assert.Equal(1, child.Count); // 1 local + 0 (Count only counts local)
             Assert.True(child.ContainsKey("a"));
             
             parent.Clear();

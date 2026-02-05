@@ -33,7 +33,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     /// Gets the parent symbol table for hierarchical scope lookup.
     /// </summary>
     /// <value>The parent <see cref="SymbolTable{TKey, TValue}"/> or null if this is the root scope.</value>
-    public SymbolTable<TKey, TValue> Parent
+    public SymbolTable<TKey, TValue>? Parent
     {
         get { return _parent; }
     }
@@ -224,7 +224,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
         }
         else
         {
-            return true;
+            return this.TryGetValueLocal(key, out value);
         }
 
 
@@ -259,7 +259,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     /// <remarks>Searches parent tables if the key is not found locally.</remarks>
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
-        TValue v;
+        TValue? v;
         if (TryGetValue(item.Key, out v))
         {
             if (EqualityComparer<TValue>.Default.Equals(item.Value, v))

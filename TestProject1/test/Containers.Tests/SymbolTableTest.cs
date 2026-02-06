@@ -363,6 +363,11 @@ namespace Utilities.Containers.Tests
             
             Assert.True(result);
             Assert.Equal(20, value);
+
+            result = child.TryGetValue("a", out value);
+            
+            Assert.True(result);
+            Assert.Equal(20, value);
         }
 
         [Fact]

@@ -214,9 +214,7 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="key"/> is null.</exception>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {   
-
         if (key == null) throw new ArgumentNullException();
-
 
         bool valueExists = this.TryGetValueLocal(key, out value);
         if (!valueExists)
@@ -228,8 +226,6 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
         {
             return this.TryGetValueLocal(key, out value);
         }
-
-
     }
 
     /// <summary>
@@ -315,9 +311,12 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
     /// <returns>An enumerator for the key-value pairs in the local table.</returns>
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        for (int i = 0; i < _sz; i++)
+        using var keyEnum = _KeyDLL.GetEnumerator();
+        using var valEnum = _ValueDLL.GetEnumerator();
+        
+        while (keyEnum.MoveNext() && valEnum.MoveNext())
         {
-            yield return new KeyValuePair<TKey, TValue>(_KeyDLL[i], _ValueDLL[i]);
+            yield return new KeyValuePair<TKey, TValue>(keyEnum.Current, valEnum.Current);
         }
     }
 

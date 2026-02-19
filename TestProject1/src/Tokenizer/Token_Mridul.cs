@@ -4,14 +4,14 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Xunit.Sdk;
 
-namespace Tokenizer;
+namespace Tokenizer_Mridul;
 
 public enum TokenType
 {
     VARIABLE,
     RETURN,
     INTEGER,
-    FLOAT,
+    DOUBLE,
     OPERATOR,
     ASSIGNMENT,
     LEFT_PAREN,
@@ -57,7 +57,7 @@ public class Token
 
     public override string ToString()
     {
-        return Value;
+        return Value + " : " + Type.ToString();
     }
 
     public override bool Equals(Object? obj)
@@ -65,14 +65,11 @@ public class Token
         if (obj is Token)
         {
             var other = (Token)obj;
-            if (this.Value == other.Value) return true;
+            if (this.Value == other.Value && this.Type == other.Type) return true;
             return false;
         }
         throw new ArgumentException("Comparision not legal.");
     }
-
-    
-
 }
 
 

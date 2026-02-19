@@ -26,7 +26,7 @@ namespace Tokenizer
         public const string FLOAT_DIVISION = "/";
         public const string INT_DIVISION = "//";
         public const string MODULUS = "%";
-        public const string EXPONENT = "^";
+        public const string EXPONENT = "**";
         public const string LEFT_PAREN = "(";
         public const string RIGHT_PAREN = ")";
         public const string LEFT_CURLY = "{";

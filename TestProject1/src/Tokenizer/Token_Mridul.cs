@@ -4,7 +4,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Xunit.Sdk;
 
-namespace Tokenizer;
+namespace Tokenizer_Mridul;
 
 public enum TokenType
 {

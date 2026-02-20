@@ -1,5 +1,11 @@
+/**
+ * Token Class: Represents a single token with a type and value
+ * Claude AI was only used for writing XML and inline comments.
+ * 
+ * @author Graham Fink, Mridul Agrawal
+ * @date   2/19/2026
+ */
 
-// "return" is the only keyword in this language
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Xunit.Sdk;

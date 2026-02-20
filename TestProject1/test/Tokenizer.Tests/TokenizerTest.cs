@@ -685,7 +685,7 @@ namespace Tokenizer.Tests
         [Fact]
         public void Tokenize_NoSpaces_AssignmentExpression_ReturnsCorrectTokens()
         {
-            var tokens = TokenizerImpl.Tokenize("x:=5");
+            var tokens = TokenizerImpl.Tokenize("x:=    5");
             Assert.Equal(3, tokens.Count);
             Assert.Equal(TokenType.VARIABLE,   tokens[0].Type);
             Assert.Equal(TokenType.ASSIGNMENT, tokens[1].Type);

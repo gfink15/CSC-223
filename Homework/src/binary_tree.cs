@@ -5,7 +5,7 @@ namespace Homework
         protected TreeNode <DataT> Root { get ; set ; }
         public BinaryTree()
         {
-            Root = new TreeNode<DataT>(default);
+            Root = new TreeNode<DataT>(null, default, null);
         }
         public void Add(DataT e)
         {
@@ -14,21 +14,25 @@ namespace Homework
             {
                 currentNode = currentNode.Left;
             }
+            currentNode.Left = new TreeNode<DataT>(default);
             currentNode.Right = new TreeNode<DataT>(e);
         }
         protected void RemoveTop(TreeNode<DataT> n)
         {
             this.Root = this.Root.Left;
         }
-        // public string ToString()
-        // {
-        //     TreeNode<DataT> currentNode = Root;
-        //     while(currentNode.Left != null)
-        //     {
-        //         currentNode = currentNode.Left;
-        //     }
-        //     currentNode.Left = new TreeNode<DataT>(null, default, new TreeNode<DataT>(e));
-        // }
+        public string ToString()
+        {
+            string output = "";
+            var currentNode = Root;
+            // output += currentNode.Right.Data + ", ";
+            while(currentNode.Left != null)
+            {
+                output += currentNode.Right.Data + ", ";
+                currentNode = currentNode.Left;
+            }
+            return output;
+        }
         protected class TreeNode <T> 
         {
             public TreeNode <T> Left { get ; set ; }
@@ -66,8 +70,8 @@ namespace Homework
             }
             private int CalculateBaseTen(TreeNode<int> n)
             {
-                if (n.Left == null) return n.Right.Data;
-                return n.Right.Data + (2 * CalculateBaseTen(n.Left));
+                if (n.Left.Left == null) return n.Right.Data;
+                return 2*CalculateBaseTen(n.Left) + n.Right.Data;
             }
             public void Increment()
             {

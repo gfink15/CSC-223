@@ -3,7 +3,7 @@
  * a doubly linked list structure
  * Claude AI was only used for writing XML and inline comments.
  * 
- * @author Graham Fink
+ * @author Graham Fink, Mridul Agrawal
  * @date   1/21/2026
  */
 

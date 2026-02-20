@@ -1,4 +1,4 @@
-namespace Homework;
+namespace Homework.src;
 
 public class BinaryTreeTest
 {

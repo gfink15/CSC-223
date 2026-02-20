@@ -28,7 +28,7 @@ namespace Homework.src
             // output += currentNode.Right.Data + ", ";
             while(currentNode.Left != null)
             {
-                output += currentNode.Right.Data + ", ";
+                output = currentNode.Right.Data + output;
                 currentNode = currentNode.Left;
             }
             return output;

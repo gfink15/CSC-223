@@ -1,8 +1,8 @@
-namespace Homework
+namespace Homework.src
 {
-    public class BinaryTree <DataT>
+    public class BinaryTree<DataT>
     {
-        protected TreeNode <DataT> Root { get ; set ; }
+        protected TreeNode<DataT> Root { get; set; }
         public BinaryTree()
         {
             Root = new TreeNode<DataT>(default);
@@ -14,24 +14,24 @@ namespace Homework
             {
                 currentNode = currentNode.Left;
             }
-            currentNode.Left = new TreeNode<DataT>(null, default, new TreeNode<DataT>(e));
+            currentNode.Right = new TreeNode<DataT>(e);
         }
         protected void RemoveTop(TreeNode<DataT> n)
         {
             this.Root = this.Root.Left;
         }
-        protected class TreeNode <T> 
+        protected class TreeNode<T> 
         {
-            public TreeNode <T> Left { get ; set ; }
-            public TreeNode <T> Right { get ; set ; }
-            public T Data { get ; set ; }
-            public TreeNode (TreeNode <T> left, T data, TreeNode <T> right) 
+            public TreeNode<T> Left { get; set; }
+            public TreeNode<T> Right { get; set; }
+            public T Data { get; set; }
+            public TreeNode(TreeNode<T> left, T data, TreeNode<T> right) 
             {
                 Left = left ;
                 Data = data ;
                 Right = right ;
             }
-            public TreeNode (T data) : this (null, data, null) {}
+            public TreeNode(T data) : this(null, data, null){}
         }
         public class BinaryDigitTree : BinaryTree <int> 
         {

@@ -33,6 +33,7 @@ namespace Tokenizer
 
         public const string RIGHT_CURLY = "}";
         public const string DECIMAL_POINT = ".";
+        public const string RETURN = "return";
     }
     public class Token
     {
@@ -61,7 +62,7 @@ namespace Tokenizer
         {
             get { return _len; }
         }
-        public Token(string v, TokenType t, int line, int col, int len)
+        public Token(string v, TokenType t, int line = -1, int col = -1, int len = -1)
         {
             _value = v;
             _type = t;

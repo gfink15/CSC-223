@@ -5,7 +5,8 @@ namespace Tokenizer
 {
     public class TokenizerImpl
     {
-        private List<Token> tokens = new List<Token>{};
+        private List<Token> tokens = new List<Token>();
+        private Token newToken;
         private int currentRow = 0;
         private int currentColumn = 0;
         private bool isNumber = false;
@@ -13,8 +14,9 @@ namespace Tokenizer
         private int numberPoints = 0;
         private string currentToken = "";
         private char lastChar;
-        public List<Token> Tokenizer(string input)
+        public List<Token> Tokenize(string input)
         {
+            Console.WriteLine("tokenizer activate");
             foreach (char c in input)
             {
                 
@@ -53,18 +55,28 @@ namespace Tokenizer
                 }
                 else if (!Char.IsWhiteSpace(c))
                 {
-                    isVar = false;
                     if (isVar)
-                    if (c.Equals(TokenConstants.LEFT_PAREN)) LeftParenHelper(c.ToString(), currentRow, currentColumn);
-                    else if (c.Equals(TokenConstants.RIGHT_PAREN)) RightParenHelper(c.ToString(), currentRow, currentColumn);
-                    else if (c.Equals(TokenConstants.LEFT_CURLY)) LeftCurlyHelper(c.ToString(), currentRow, currentColumn);
-                    else if (c.Equals(TokenConstants.RIGHT_CURLY)) RightCurlyHelper(c.ToString(), currentRow, currentColumn);
+                    {
+                        VariableHelper(currentToken, currentRow, currentColumn);
+                    }
+                    if (isNumber)
+                    {
+                        NumberHelper(currentToken, currentRow, currentColumn);
+                    }
+                    currentToken = "";
+                    isVar = false;
+                    isNumber = false;
+                    numberPoints = 0;
+                    if (c.Equals(TokenConstants.LEFT_PAREN) ||
+                        c.Equals(TokenConstants.RIGHT_PAREN) ||
+                        c.Equals(TokenConstants.LEFT_CURLY) ||
+                        c.Equals(TokenConstants.RIGHT_CURLY)) ParenCurlyHelper(c.ToString(), currentRow, currentColumn);
                     else if (c.Equals(TokenConstants.PLUS) || 
                         c.Equals(TokenConstants.MINUS) || 
                         c.Equals(TokenConstants.TIMES) || 
                         c.Equals(TokenConstants.INT_DIVISION) ||  
-                        c.Equals(TokenConstants.EXPONENT)) OperatorHelper(c.ToString(), currentRow, currentColumn);
-                    else if (c == ':' || c == '=') AssignmentHelper(c.ToString(), currentRow, currentColumn);
+                        c.Equals(TokenConstants.MODULUS)) OperatorHelper(c.ToString(), currentRow, currentColumn);
+                    else if (lastChar.ToString() + c.ToString() == TokenConstants.ASSIGNMENT) AssignmentHelper(lastChar.ToString() + c.ToString(), currentRow, currentColumn);
                     lastChar = c;
                 }
                 else if (c == '\n')
@@ -75,43 +87,46 @@ namespace Tokenizer
                 else currentColumn++;
                 
             }
+            Console.WriteLine("Returning "+tokens);
             return tokens;
         }
         private void VariableHelper(string t, int r, int c)
         {
-            throw new NotImplementedException();
+            throw new Exception("Variable detected: "+t);
+            if (t == TokenConstants.RETURN) tokens.Append(new Token(t, TokenType.RETURN, r, c, t.Length));
+            else if (GeneralUtils.IsValidVariable(t)) tokens.Append(new Token(t, TokenType.VARIABLE, r, c, 1));
+            else throw new ArgumentException("Invalid variable '"+t+"' passed to VariableHelper at Row "+currentRow+" Col "+currentColumn);
+            throw new Exception("After variable helper: "+tokens);
         }
         private void OperatorHelper(string t, int r, int c)
         {
-            throw new NotImplementedException();
+            if (t + lastChar == TokenConstants.FLOAT_DIVISION) tokens.Add(new Token(TokenConstants.FLOAT_DIVISION, TokenType.OPERATOR, r, c, 2));
+            else if (t + lastChar == TokenConstants.EXPONENT) tokens.Add(new Token(TokenConstants.EXPONENT, TokenType.OPERATOR, r, c, 2));
+            else if (t.Equals(TokenConstants.PLUS)) tokens.Add(new Token(TokenConstants.PLUS, TokenType.OPERATOR, r, c, 1));
+            else if (t.Equals(TokenConstants.MINUS)) tokens.Add(new Token(TokenConstants.MINUS, TokenType.OPERATOR, r, c, 1));
+            else if (t.Equals(TokenConstants.TIMES)) tokens.Add(new Token(TokenConstants.TIMES, TokenType.OPERATOR, r, c, 1));
+            else if (t.Equals(TokenConstants.INT_DIVISION)) tokens.Add(new Token(TokenConstants.INT_DIVISION, TokenType.OPERATOR, r, c, 1));
+            else if (t.Equals(TokenConstants.MODULUS)) tokens.Add(new Token(TokenConstants.MODULUS, TokenType.OPERATOR, r, c, 1));
+            else throw new ArgumentException("Invalid operator '"+t+"' passed to OperatorHelper at Row "+currentRow+" Col "+currentColumn);
         }
         private void AssignmentHelper(string t, int r, int c)
         {
-            throw new NotImplementedException();
-        }
-        private void ReturnHelper(string t, int r, int c)
-        {
-            throw new NotImplementedException();
+            if (t + lastChar == TokenConstants.ASSIGNMENT) tokens.Add(new Token(TokenConstants.ASSIGNMENT, TokenType.ASSIGNMENT, r, c, 2));
+            else throw new ArgumentException("Invalid assigner '"+t+"' passed to AssignmentHelper at Row "+currentRow+" Col "+currentColumn);
         }
         private void NumberHelper(string t, int r, int c)
         {
-            throw new NotImplementedException();
+            if (numberPoints == 0) tokens.Add(new Token(t, TokenType.INTEGER, r, c, t.Length));
+            else if (numberPoints == 1) tokens.Add(new Token(t, TokenType.FLOAT, r, c, t.Length));
+            else throw new ArgumentException("Invalid character '"+t+"' passed to NumberHelper at Row "+currentRow+" Col "+currentColumn);
         }
-        private void LeftParenHelper(string t, int r, int c)
+        private void ParenCurlyHelper(string t, int r, int c)
         {
-            throw new NotImplementedException();
-        }
-        private void RightParenHelper(string t, int r, int c)
-        {
-            throw new NotImplementedException();
-        }
-        private void LeftCurlyHelper(string t, int r, int c)
-        {
-            throw new NotImplementedException();
-        }
-        private void RightCurlyHelper(string t, int r, int c)
-        {
-            throw new NotImplementedException();
+            if (t.Equals(TokenConstants.LEFT_PAREN)) tokens.Add(new Token(TokenConstants.LEFT_PAREN, TokenType.LEFT_PAREN, r, c, 1));
+            else if (t.Equals(TokenConstants.RIGHT_PAREN)) tokens.Add(new Token(TokenConstants.RIGHT_PAREN, TokenType.RIGHT_PAREN, r, c, 1));
+            else if (t.Equals(TokenConstants.LEFT_CURLY)) tokens.Add(new Token(TokenConstants.LEFT_CURLY, TokenType.LEFT_CURLY, r, c, 1));
+            else if (t.Equals(TokenConstants.RIGHT_CURLY)) tokens.Add(new Token(TokenConstants.RIGHT_CURLY, TokenType.RIGHT_CURLY, r, c, 1));
+            else throw new ArgumentException("Invalid character '"+t+"' passed to ParenCurlyHelper at Row "+currentRow+" Col "+currentColumn);
         }
     }
 }

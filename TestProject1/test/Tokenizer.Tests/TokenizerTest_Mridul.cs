@@ -1,187 +1,960 @@
-using Tokenizer_Mridul;
-using Xunit.Abstractions;
+using System;
+using System.Collections.Generic;
+using Xunit;
+using Tokenizer;
 
-namespace Tokenizer_Mridul.Tests;
-
-public class TokenizerTest
+namespace Tokenizer_Mridul.Tests
 {
-    private readonly ITestOutputHelper _output;
-
-    // xUnit injects this automatically
-    public TokenizerTest(ITestOutputHelper output) {
-        _output = output;
-    }
-
-    [Fact]
-    public void TestTokenize()
+    /// <summary>
+    /// Comprehensive xUnit test suite for the DEC language TokenizerImpl.
+    /// Covers all token types, edge cases, error handling, and combinations.
+    /// </summary>
+    public class TokenizerManualTest
     {
-        string source_code = "x"; //:= 5 + 3.14 * (y - 2)
-        List<Token> expectedTokens = new List<Token>
-        {
-            new Token("x", TokenType.VARIABLE),
-            // new Token(":=", TokenType.ASSIGNMENT),
-            // new Token("5", TokenType.INTEGER),
-            // new Token("+", TokenType.OPERATOR),
-            // new Token("3.14", TokenType.DOUBLE),
-            // new Token("*", TokenType.OPERATOR),
-            // new Token("(", TokenType.LEFT_PAREN),
-            // new Token("y", TokenType.VARIABLE),
-            // new Token("-", TokenType.OPERATOR),
-            // new Token("2", TokenType.INTEGER),
-            // new Token(")", TokenType.RIGHT_PAREN)
-        };
+        // ─────────────────────────────────────────────────────────────
+        // TOKEN CLASS TESTS
+        // ─────────────────────────────────────────────────────────────
 
-        List<Token> actualTokens = TokenizerImpl.Tokenize(source_code);
+        #region Token Class Tests
 
-        Assert.Equal(expectedTokens.Count, actualTokens.Count);
-        for (int i = 0; i < expectedTokens.Count; i++)
+        [Fact]
+        public void Token_Constructor_SetsValueAndType()
         {
-            Assert.Equal(expectedTokens[i].Type, actualTokens[i].Type);
-            Assert.Equal(expectedTokens[i].Value, actualTokens[i].Value);
+            var token = new Token("x", TokenType.VARIABLE);
+            Assert.Equal("x", token.Value);
+            Assert.Equal(TokenType.VARIABLE, token.Type);
         }
-    }
 
-    public static IEnumerable<object[]> TokenizeData =>
-    [
-        // Single variable
-        ["x", new List<Token> { new("x", TokenType.VARIABLE) }],
-        // Variable followed by assignment
-        ["y :=", new List<Token> { new("y", TokenType.VARIABLE), new(TokenConstants.ASSIGNMENT, TokenType.ASSIGNMENT) }],
-        // Full expression with curly braces
-        ["{x := 5 + 3.14 * (y - 2)}", new List<Token> {
-            new("{", TokenType.LEFT_CURLY),
-            new("x", TokenType.VARIABLE),
-            new(":=", TokenType.ASSIGNMENT),
-            new("5", TokenType.INTEGER),
-            new("+", TokenType.OPERATOR),
-            new("3.14", TokenType.DOUBLE),
-            new("*", TokenType.OPERATOR),
-            new("(", TokenType.LEFT_PAREN),
-            new("y", TokenType.VARIABLE),
-            new("-", TokenType.OPERATOR),
-            new("2", TokenType.INTEGER),
-            new(")", TokenType.RIGHT_PAREN),
-            new("}", TokenType.RIGHT_CURLY)
-        }],
-        // Single integer
-        ["42", new List<Token> { new("42", TokenType.INTEGER) }],
-        // Single double
-        ["3.14", new List<Token> { new("3.14", TokenType.DOUBLE) }],
-        // Return keyword
-        ["return", new List<Token> { new(TokenConstants.RETURN, TokenType.RETURN) }],
-        // Return in expression
-        ["return x", new List<Token> { new(TokenConstants.RETURN, TokenType.RETURN), new("x", TokenType.VARIABLE) }],
-        // All operators
-        ["a + b", new List<Token> { new("a", TokenType.VARIABLE), new(TokenConstants.PLUS, TokenType.OPERATOR), new("b", TokenType.VARIABLE) }],
-        ["a - b", new List<Token> { new("a", TokenType.VARIABLE), new(TokenConstants.MINUS, TokenType.OPERATOR), new("b", TokenType.VARIABLE) }],
-        ["a * b", new List<Token> { new("a", TokenType.VARIABLE), new(TokenConstants.MULTIPLY, TokenType.OPERATOR), new("b", TokenType.VARIABLE) }],
-        ["a / b", new List<Token> { new("a", TokenType.VARIABLE), new(TokenConstants.DIVIDE, TokenType.OPERATOR), new("b", TokenType.VARIABLE) }],
-        // Parentheses
-        ["(x)", new List<Token> { new("(", TokenType.LEFT_PAREN), new("x", TokenType.VARIABLE), new(")", TokenType.RIGHT_PAREN) }],
-        // Curly braces alone
-        ["{}", new List<Token> { new("{", TokenType.LEFT_CURLY), new("}", TokenType.RIGHT_CURLY) }],
-        // Multi-digit integer
-        ["123", new List<Token> { new("123", TokenType.INTEGER) }],
-        // Multi-character variable
-        ["myvar", new List<Token> { new("myvar", TokenType.VARIABLE) }],
-        // Assignment operator alone
-        [":=", new List<Token> { new(TokenConstants.ASSIGNMENT, TokenType.ASSIGNMENT) }],
-        // Empty string
-        ["", new List<Token>()],
-    ];
-
-    [Theory]
-    [MemberData(nameof(TokenizeData))]
-    public void Tokenize_ReturnsCorrectTokens(string source_code, List<Token> expectedTokens)
-    {
-        List<Token> actualTokens = TokenizerImpl.Tokenize(source_code);
-
-        _output.WriteLine($"Input: \"{source_code}\"");
-        foreach (var token in actualTokens)
-            _output.WriteLine("  " + token.ToString());
-
-        Assert.Equal(expectedTokens.Count, actualTokens.Count);
-        for (int i = 0; i < expectedTokens.Count; i++)
+        [Fact]
+        public void Token_Equals_SameValueAndType_ReturnsTrue()
         {
-            Assert.Equal(expectedTokens[i].Type, actualTokens[i].Type);
-            Assert.Equal(expectedTokens[i].Value, actualTokens[i].Value);
+            var t1 = new Token("x", TokenType.VARIABLE);
+            var t2 = new Token("x", TokenType.VARIABLE);
+            Assert.Equal(t1, t2);
         }
-    }
 
-    // --- Unit tests for individual handler methods ---
+        [Fact]
+        public void Token_Equals_DifferentValue_ReturnsFalse()
+        {
+            var t1 = new Token("x", TokenType.VARIABLE);
+            var t2 = new Token("y", TokenType.VARIABLE);
+            Assert.NotEqual(t1, t2);
+        }
 
-    [Fact]
-    public void HandleIntegerOrDouble_Integer()
-    {
-        Token t = TokenizerImpl.HandleIntegerOrDouble("99");
-        Assert.Equal(TokenType.INTEGER, t.Type);
-        Assert.Equal("99", t.Value);
-    }
+        [Fact]
+        public void Token_Equals_DifferentType_ReturnsFalse()
+        {
+            var t1 = new Token("x", TokenType.VARIABLE);
+            var t2 = new Token("x", TokenType.RETURN);
+            Assert.NotEqual(t1, t2);
+        }
 
-    [Fact]
-    public void HandleIntegerOrDouble_Double()
-    {
-        Token t = TokenizerImpl.HandleIntegerOrDouble("2.71");
-        Assert.Equal(TokenType.DOUBLE, t.Type);
-        Assert.Equal("2.71", t.Value);
-    }
+        [Fact]
+        public void Token_ToString_ContainsValueAndType()
+        {
+            var token = new Token("x", TokenType.VARIABLE);
+            string result = token.ToString();
+            Assert.Contains("x", result);
+            Assert.Contains("VARIABLE", result);
+        }
 
-    [Fact]
-    public void HandleString_Variable()
-    {
-        Token t = TokenizerImpl.HandleString("foo");
-        Assert.Equal(TokenType.VARIABLE, t.Type);
-        Assert.Equal("foo", t.Value);
-    }
+        [Fact]
+        public void Token_Equals_Null_ReturnsFalse()
+        {
+            var token = new Token("x", TokenType.VARIABLE);
+            Assert.False(token.Equals(null));
+        }
 
-    [Fact]
-    public void HandleString_ReturnKeyword()
-    {
-        Token t = TokenizerImpl.HandleString("return");
-        Assert.Equal(TokenType.RETURN, t.Type);
-        Assert.Equal(TokenConstants.RETURN, t.Value);
-    }
+        #endregion
 
-    [Fact]
-    public void HandleAssignment_ReturnsAssignmentToken()
-    {
-        Token t = TokenizerImpl.HandleAssignment(":=");
-        Assert.Equal(TokenType.ASSIGNMENT, t.Type);
-        Assert.Equal(TokenConstants.ASSIGNMENT, t.Value);
-    }
+        // ─────────────────────────────────────────────────────────────
+        // TOKEN CONSTANTS TESTS
+        // ─────────────────────────────────────────────────────────────
 
-    [Theory]
-    [InlineData("(", TokenType.LEFT_PAREN)]
-    [InlineData(")", TokenType.RIGHT_PAREN)]
-    [InlineData("{", TokenType.LEFT_CURLY)]
-    [InlineData("}", TokenType.RIGHT_CURLY)]
-    public void HandleParensAndCurly_AllVariants(string input, TokenType expected)
-    {
-        Token t = TokenizerImpl.HandleParensAndCurly(input);
-        Assert.Equal(expected, t.Type);
-        Assert.Equal(input, t.Value);
-    }
+        #region TokenConstants Tests
 
-    [Fact]
-    public void HandleParensAndCurly_InvalidThrows()
-    {
-        Assert.Throws<Exception>(() => TokenizerImpl.HandleParensAndCurly("x"));
-    }
+        [Fact]
+        public void TokenConstants_Plus_IsCorrect()
+        {
+            Assert.Equal("+", TokenConstants.PLUS);
+        }
 
-    [Theory]
-    [InlineData("+", TokenType.OPERATOR)]
-    [InlineData("-", TokenType.OPERATOR)]
-    [InlineData("*", TokenType.OPERATOR)]
-    [InlineData("/", TokenType.OPERATOR)]
-    public void HandleOperator_AllVariants(string input, TokenType expected)
-    {
-        Token t = TokenizerImpl.HandleOperator(input);
-        Assert.Equal(expected, t.Type);
-    }
+        [Fact]
+        public void TokenConstants_LeftParen_IsCorrect()
+        {
+            Assert.Equal("(", TokenConstants.LEFT_PAREN);
+        }
 
-    [Fact]
-    public void HandleOperator_InvalidThrows()
-    {
-        Assert.Throws<Exception>(() => TokenizerImpl.HandleOperator("^"));
+        [Fact]
+        public void TokenConstants_LeftCurly_IsCorrect()
+        {
+            Assert.Equal("{", TokenConstants.LEFT_CURLY);
+        }
+
+        [Fact]
+        public void TokenConstants_Assignment_IsCorrect()
+        {
+            Assert.Equal(":=", TokenConstants.ASSIGNMENT);
+        }
+
+        [Fact]
+        public void TokenConstants_DecimalPoint_IsCorrect()
+        {
+            Assert.Equal(".", TokenConstants.DECIMAL_POINT);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // WHITESPACE / EMPTY INPUT
+        // ─────────────────────────────────────────────────────────────
+
+        #region Whitespace and Empty Input
+
+        [Fact]
+        public void Tokenize_EmptyString_ReturnsEmptyList()
+        {
+            var tokens = TokenizerImpl.Tokenize("");
+            Assert.Empty(tokens);
+        }
+
+        [Fact]
+        public void Tokenize_OnlyWhitespace_ReturnsEmptyList()
+        {
+            var tokens = TokenizerImpl.Tokenize("   \t\n\r  ");
+            Assert.Empty(tokens);
+        }
+
+        [Theory]
+        [InlineData("x")]
+        [InlineData(" x")]
+        [InlineData("x ")]
+        [InlineData("  x  ")]
+        [InlineData("\tx\t")]
+        [InlineData("\nx\n")]
+        public void Tokenize_VariableWithSurroundingWhitespace_ReturnsSingleVariableToken(string input)
+        {
+            var tokens = TokenizerImpl.Tokenize(input);
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.VARIABLE, tokens[0].Type);
+            Assert.Equal("x", tokens[0].Value);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // VARIABLES
+        // ─────────────────────────────────────────────────────────────
+
+        #region Variable Tokens
+
+        [Theory]
+        [InlineData("x", "x")]
+        [InlineData("abc", "abc")]
+        [InlineData("myvar", "myvar")]
+        [InlineData("z", "z")]
+        [InlineData("longvariablename", "longvariablename")]
+        public void Tokenize_LowercaseVariable_ReturnsVariableToken(string input, string expectedValue)
+        {
+            var tokens = TokenizerImpl.Tokenize(input);
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.VARIABLE, tokens[0].Type);
+            Assert.Equal(expectedValue, tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_MultipleVariables_ReturnsCorrectTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("x y z");
+            Assert.Equal(3, tokens.Count);
+            Assert.All(tokens, t => Assert.Equal(TokenType.VARIABLE, t.Type));
+            Assert.Equal("x", tokens[0].Value);
+            Assert.Equal("y", tokens[1].Value);
+            Assert.Equal("z", tokens[2].Value);
+        }
+
+        [Fact]
+        public void Tokenize_SingleLetterVariables_AllRecognized()
+        {
+            // All 26 letters should be valid variables
+            for (char c = 'a'; c <= 'z'; c++)
+            {
+                var tokens = TokenizerImpl.Tokenize(c.ToString());
+                Assert.Single(tokens);
+                Assert.Equal(TokenType.VARIABLE, tokens[0].Type);
+                Assert.Equal(c.ToString(), tokens[0].Value);
+            }
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // KEYWORD: return
+        // ─────────────────────────────────────────────────────────────
+
+        #region Keyword Tokens
+
+        [Fact]
+        public void Tokenize_ReturnKeyword_ReturnsReturnToken()
+        {
+            var tokens = TokenizerImpl.Tokenize("return");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.RETURN, tokens[0].Type);
+            Assert.Equal("return", tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_ReturnNotAKeyword_WhenPartOfLargerWord()
+        {
+            // "returns" is a variable, not the return keyword
+            var tokens = TokenizerImpl.Tokenize("returns");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.VARIABLE, tokens[0].Type);
+        }
+
+        [Fact]
+        public void Tokenize_ReturnFollowedByVariable_ReturnsBothTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("return x");
+            Assert.Equal(2, tokens.Count);
+            Assert.Equal(TokenType.RETURN, tokens[0].Type);
+            Assert.Equal(TokenType.VARIABLE, tokens[1].Type);
+        }
+
+        [Fact]
+        public void Tokenize_ReturnInExpression_RecognizedAsKeyword()
+        {
+            var tokens = TokenizerImpl.Tokenize("return x + y");
+            Assert.Equal(4, tokens.Count);
+            Assert.Equal(TokenType.RETURN, tokens[0].Type);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // INTEGER LITERALS
+        // ─────────────────────────────────────────────────────────────
+
+        #region Integer Tokens
+
+        [Theory]
+        [InlineData("0", "0")]
+        [InlineData("1", "1")]
+        [InlineData("42", "42")]
+        [InlineData("100", "100")]
+        [InlineData("999999", "999999")]
+        public void Tokenize_Integer_ReturnsIntegerToken(string input, string expectedValue)
+        {
+            var tokens = TokenizerImpl.Tokenize(input);
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.INTEGER, tokens[0].Type);
+            Assert.Equal(expectedValue, tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_MultipleIntegers_ReturnsAllIntegerTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("1 2 3");
+            Assert.Equal(3, tokens.Count);
+            Assert.All(tokens, t => Assert.Equal(TokenType.INTEGER, t.Type));
+        }
+
+        [Fact]
+        public void Tokenize_LargeInteger_ReturnsCorrectToken()
+        {
+            var tokens = TokenizerImpl.Tokenize("1234567890");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.INTEGER, tokens[0].Type);
+            Assert.Equal("1234567890", tokens[0].Value);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // FLOAT LITERALS
+        // ─────────────────────────────────────────────────────────────
+
+        #region Float Tokens
+
+        [Theory]
+        [InlineData("1.0", "1.0")]
+        [InlineData("3.14", "3.14")]
+        [InlineData("0.5", "0.5")]
+        [InlineData("100.001", "100.001")]
+        [InlineData("99.99", "99.99")]
+        public void Tokenize_Float_ReturnsFloatToken(string input, string expectedValue)
+        {
+            var tokens = TokenizerImpl.Tokenize(input);
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.DOUBLE, tokens[0].Type);
+            Assert.Equal(expectedValue, tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_FloatVsInteger_DistinguishedCorrectly()
+        {
+            var intTokens = TokenizerImpl.Tokenize("5");
+            var floatTokens = TokenizerImpl.Tokenize("5.0");
+
+            Assert.Equal(TokenType.INTEGER, intTokens[0].Type);
+            Assert.Equal(TokenType.DOUBLE, floatTokens[0].Type);
+        }
+
+        [Fact]
+        public void Tokenize_MultipleFloats_ReturnsAllFloatTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("1.1 2.2 3.3");
+            Assert.Equal(3, tokens.Count);
+            Assert.All(tokens, t => Assert.Equal(TokenType.DOUBLE, t.Type));
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // ASSIGNMENT OPERATOR
+        // ─────────────────────────────────────────────────────────────
+
+        #region Assignment Operator
+
+        [Fact]
+        public void Tokenize_AssignmentOperator_ReturnsAssignmentToken()
+        {
+            var tokens = TokenizerImpl.Tokenize(":=");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.ASSIGNMENT, tokens[0].Type);
+            Assert.Equal(":=", tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_AssignmentWithSpaces_ReturnsAssignmentToken()
+        {
+            var tokens = TokenizerImpl.Tokenize(" := ");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.ASSIGNMENT, tokens[0].Type);
+        }
+
+        [Fact]
+        public void Tokenize_ColonWithoutEquals_ThrowsArgumentException2()
+        {
+            // A lone colon is not valid in DEC
+            Assert.Throws<ArgumentException>(() => TokenizerImpl.Tokenize(":"));
+        }
+
+        [Fact]
+        public void Tokenize_AssignmentStatement_ReturnsCorrectSequence()
+        {
+            var tokens = TokenizerImpl.Tokenize("x := 5");
+            Assert.Equal(3, tokens.Count);
+            Assert.Equal(TokenType.VARIABLE, tokens[0].Type);
+            Assert.Equal(TokenType.ASSIGNMENT, tokens[1].Type);
+            Assert.Equal(TokenType.INTEGER, tokens[2].Type);
+        }
+
+        [Fact]
+        public void Tokenize_FloatAssignment_ReturnsCorrectSequence()
+        {
+            var tokens = TokenizerImpl.Tokenize("x := 3.14");
+            Assert.Equal(3, tokens.Count);
+            Assert.Equal(TokenType.VARIABLE, tokens[0].Type);
+            Assert.Equal(TokenType.ASSIGNMENT, tokens[1].Type);
+            Assert.Equal(TokenType.DOUBLE, tokens[2].Type);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // ARITHMETIC OPERATORS
+        // ─────────────────────────────────────────────────────────────
+
+        #region Arithmetic Operator Tokens
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        public void Tokenize_BasicArithmeticOperator_ReturnsOperatorToken(string op)
+        {
+            var tokens = TokenizerImpl.Tokenize(op);
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.OPERATOR, tokens[0].Type);
+            Assert.Equal(op, tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_FloatDivision_ReturnsOperatorToken()
+        {
+            // Single slash = float division
+            var tokens = TokenizerImpl.Tokenize("/");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.OPERATOR, tokens[0].Type);
+            Assert.Equal("/", tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_IntegerDivision_ReturnsOperatorToken()
+        {
+            // Double slash = integer division
+            var tokens = TokenizerImpl.Tokenize("//");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.OPERATOR, tokens[0].Type);
+            Assert.Equal("//", tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_Modulus_ReturnsOperatorToken()
+        {
+            var tokens = TokenizerImpl.Tokenize("%");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.OPERATOR, tokens[0].Type);
+            Assert.Equal("%", tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_Exponentiation_ReturnsOperatorToken()
+        {
+            var tokens = TokenizerImpl.Tokenize("**");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.OPERATOR, tokens[0].Type);
+            Assert.Equal("**", tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_FloatDivisionVsIntegerDivision_DistinguishedCorrectly()
+        {
+            var floatDiv = TokenizerImpl.Tokenize("/");
+            var intDiv = TokenizerImpl.Tokenize("//");
+
+            Assert.Equal("/", floatDiv[0].Value);
+            Assert.Equal("//", intDiv[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_AllOperators_AllHaveOperatorType()
+        {
+            string[] operators = { "+", "-", "*", "/", "//", "%", "**" };
+            foreach (var op in operators)
+            {
+                var tokens = TokenizerImpl.Tokenize(op);
+                Assert.Single(tokens);
+                Assert.Equal(TokenType.OPERATOR, tokens[0].Type);
+            }
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // PARENTHESES
+        // ─────────────────────────────────────────────────────────────
+
+        #region Parenthesis Tokens
+
+        [Fact]
+        public void Tokenize_LeftParen_ReturnsLeftParenToken()
+        {
+            var tokens = TokenizerImpl.Tokenize("(");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.LEFT_PAREN, tokens[0].Type);
+            Assert.Equal("(", tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_RightParen_ReturnsRightParenToken()
+        {
+            var tokens = TokenizerImpl.Tokenize(")");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.RIGHT_PAREN, tokens[0].Type);
+            Assert.Equal(")", tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_MatchedParens_ReturnsBothTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("()");
+            Assert.Equal(2, tokens.Count);
+            Assert.Equal(TokenType.LEFT_PAREN, tokens[0].Type);
+            Assert.Equal(TokenType.RIGHT_PAREN, tokens[1].Type);
+        }
+
+        [Fact]
+        public void Tokenize_NestedParens_ReturnsAllTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("((()))");
+            Assert.Equal(6, tokens.Count);
+            Assert.Equal(TokenType.LEFT_PAREN,  tokens[0].Type);
+            Assert.Equal(TokenType.LEFT_PAREN,  tokens[1].Type);
+            Assert.Equal(TokenType.LEFT_PAREN,  tokens[2].Type);
+            Assert.Equal(TokenType.RIGHT_PAREN, tokens[3].Type);
+            Assert.Equal(TokenType.RIGHT_PAREN, tokens[4].Type);
+            Assert.Equal(TokenType.RIGHT_PAREN, tokens[5].Type);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // CURLY BRACES
+        // ─────────────────────────────────────────────────────────────
+
+        #region Curly Brace Tokens
+
+        [Fact]
+        public void Tokenize_LeftCurly_ReturnsLeftCurlyToken()
+        {
+            var tokens = TokenizerImpl.Tokenize("{");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.LEFT_CURLY, tokens[0].Type);
+            Assert.Equal("{", tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_RightCurly_ReturnsRightCurlyToken()
+        {
+            var tokens = TokenizerImpl.Tokenize("}");
+            Assert.Single(tokens);
+            Assert.Equal(TokenType.RIGHT_CURLY, tokens[0].Type);
+            Assert.Equal("}", tokens[0].Value);
+        }
+
+        [Fact]
+        public void Tokenize_MatchedCurlies_ReturnsBothTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("{}");
+            Assert.Equal(2, tokens.Count);
+            Assert.Equal(TokenType.LEFT_CURLY,  tokens[0].Type);
+            Assert.Equal(TokenType.RIGHT_CURLY, tokens[1].Type);
+        }
+
+        [Fact]
+        public void Tokenize_NestedCurlies_ReturnsAllTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("{{}}");
+            Assert.Equal(4, tokens.Count);
+            Assert.Equal(TokenType.LEFT_CURLY,  tokens[0].Type);
+            Assert.Equal(TokenType.LEFT_CURLY,  tokens[1].Type);
+            Assert.Equal(TokenType.RIGHT_CURLY, tokens[2].Type);
+            Assert.Equal(TokenType.RIGHT_CURLY, tokens[3].Type);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // COMPLEX EXPRESSIONS
+        // ─────────────────────────────────────────────────────────────
+
+        #region Complex Expression Tests
+
+        [Fact]
+        public void Tokenize_ExampleFromSpec_xAssignParenOnePlusTwoRightParen()
+        {
+            // From the assignment PDF: x := (1 + 2)
+            var tokens = TokenizerImpl.Tokenize("x := (1 + 2)");
+            Assert.Equal(7, tokens.Count);
+            Assert.Equal(new Token("x",  TokenType.VARIABLE),   tokens[0]);
+            Assert.Equal(new Token(":=", TokenType.ASSIGNMENT), tokens[1]);
+            Assert.Equal(new Token("(",  TokenType.LEFT_PAREN), tokens[2]);
+            Assert.Equal(new Token("1",  TokenType.INTEGER),    tokens[3]);
+            Assert.Equal(new Token("+",  TokenType.OPERATOR),   tokens[4]);
+            Assert.Equal(new Token("2",  TokenType.INTEGER),    tokens[5]);
+            Assert.Equal(new Token(")",  TokenType.RIGHT_PAREN),tokens[6]);
+        }
+
+        [Fact]
+        public void Tokenize_NestedArithmeticExpression_ReturnsCorrectTokens()
+        {
+            // (a + b) * (c - d)
+            var tokens = TokenizerImpl.Tokenize("(a + b) * (c - d)");
+            Assert.Equal(11, tokens.Count);
+            Assert.Equal(TokenType.LEFT_PAREN,  tokens[0].Type);
+            Assert.Equal(TokenType.VARIABLE,    tokens[1].Type);
+            Assert.Equal(TokenType.OPERATOR,    tokens[2].Type);
+            Assert.Equal(TokenType.VARIABLE,    tokens[3].Type);
+            Assert.Equal(TokenType.RIGHT_PAREN, tokens[4].Type);
+            Assert.Equal(TokenType.OPERATOR,    tokens[5].Type);
+            Assert.Equal(TokenType.LEFT_PAREN,  tokens[6].Type);
+            Assert.Equal(TokenType.VARIABLE,    tokens[7].Type);
+            Assert.Equal(TokenType.OPERATOR,    tokens[8].Type);
+            Assert.Equal(TokenType.VARIABLE,    tokens[9].Type);
+            Assert.Equal(TokenType.RIGHT_PAREN, tokens[10].Type);
+        }
+
+        [Fact]
+        public void Tokenize_FloatArithmetic_ReturnsCorrectTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("x := 1.5 + 2.5");
+            Assert.Equal(5, tokens.Count);
+            Assert.Equal(TokenType.VARIABLE,   tokens[0].Type);
+            Assert.Equal(TokenType.ASSIGNMENT, tokens[1].Type);
+            Assert.Equal(TokenType.DOUBLE,      tokens[2].Type);
+            Assert.Equal(TokenType.OPERATOR,   tokens[3].Type);
+            Assert.Equal(TokenType.DOUBLE,      tokens[4].Type);
+        }
+
+        [Fact]
+        public void Tokenize_IntegerDivisionExpression_ReturnsCorrectTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("a // b");
+            Assert.Equal(3, tokens.Count);
+            Assert.Equal(TokenType.VARIABLE, tokens[0].Type);
+            Assert.Equal(TokenType.OPERATOR, tokens[1].Type);
+            Assert.Equal("//",              tokens[1].Value);
+            Assert.Equal(TokenType.VARIABLE, tokens[2].Type);
+        }
+
+        [Fact]
+        public void Tokenize_ModulusExpression_ReturnsCorrectTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("a % b");
+            Assert.Equal(3, tokens.Count);
+            Assert.Equal(TokenType.OPERATOR, tokens[1].Type);
+            Assert.Equal("%", tokens[1].Value);
+        }
+
+        [Fact]
+        public void Tokenize_ExponentiationExpression_ReturnsCorrectTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("x ** 2");
+            Assert.Equal(3, tokens.Count);
+            Assert.Equal(TokenType.OPERATOR, tokens[1].Type);
+            Assert.Equal("^", tokens[1].Value);
+        }
+
+        [Fact]
+        public void Tokenize_ReturnStatement_ReturnsCorrectTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("return x");
+            Assert.Equal(2, tokens.Count);
+            Assert.Equal(TokenType.RETURN,   tokens[0].Type);
+            Assert.Equal(TokenType.VARIABLE, tokens[1].Type);
+        }
+
+        [Fact]
+        public void Tokenize_ScopedBlock_ReturnsCorrectTokens()
+        {
+            // { x := 1 }
+            var tokens = TokenizerImpl.Tokenize("{ x := 1 }");
+            Assert.Equal(5, tokens.Count);
+            Assert.Equal(TokenType.LEFT_CURLY,  tokens[0].Type);
+            Assert.Equal(TokenType.VARIABLE,    tokens[1].Type);
+            Assert.Equal(TokenType.ASSIGNMENT,  tokens[2].Type);
+            Assert.Equal(TokenType.INTEGER,     tokens[3].Type);
+            Assert.Equal(TokenType.RIGHT_CURLY, tokens[4].Type);
+        }
+
+        [Fact]
+        public void Tokenize_ComplexProgram_ReturnsAllTokensInOrder()
+        {
+            string program = "{ x := (a + b) // 2 return x }";
+            var tokens = TokenizerImpl.Tokenize(program);
+
+            Assert.Equal(12, tokens.Count);
+            Assert.Equal(TokenType.LEFT_CURLY,  tokens[0].Type);
+            Assert.Equal(TokenType.VARIABLE,    tokens[1].Type);
+            Assert.Equal(TokenType.ASSIGNMENT,  tokens[2].Type);
+            Assert.Equal(TokenType.LEFT_PAREN,  tokens[3].Type);
+            Assert.Equal(TokenType.VARIABLE,    tokens[4].Type);
+            Assert.Equal(TokenType.OPERATOR,    tokens[5].Type);
+            Assert.Equal(TokenType.VARIABLE,    tokens[6].Type);
+            Assert.Equal(TokenType.RIGHT_PAREN, tokens[7].Type);
+            Assert.Equal(TokenType.OPERATOR,    tokens[8].Type);
+            Assert.Equal("//",                  tokens[8].Value);
+            Assert.Equal(TokenType.INTEGER,     tokens[9].Type);
+            Assert.Equal(TokenType.RETURN,      tokens[10].Type);
+            Assert.Equal(TokenType.VARIABLE,    tokens[11].Type);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // NO SPACES BETWEEN TOKENS
+        // ─────────────────────────────────────────────────────────────
+
+        #region No-Whitespace Tokenization
+
+        [Fact]
+        public void Tokenize_NoSpaces_ParenExpression_ReturnsCorrectTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("(1+2)");
+            Assert.Equal(5, tokens.Count);
+            Assert.Equal(TokenType.LEFT_PAREN,  tokens[0].Type);
+            Assert.Equal(TokenType.INTEGER,     tokens[1].Type);
+            Assert.Equal(TokenType.OPERATOR,    tokens[2].Type);
+            Assert.Equal(TokenType.INTEGER,     tokens[3].Type);
+            Assert.Equal(TokenType.RIGHT_PAREN, tokens[4].Type);
+        }
+
+        [Fact]
+        public void Tokenize_NoSpaces_AssignmentExpression_ReturnsCorrectTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("x:=5");
+            Assert.Equal(3, tokens.Count);
+            Assert.Equal(TokenType.VARIABLE,   tokens[0].Type);
+            Assert.Equal(TokenType.ASSIGNMENT, tokens[1].Type);
+            Assert.Equal(TokenType.INTEGER,    tokens[2].Type);
+        }
+
+        [Fact]
+        public void Tokenize_NoSpaces_CurlyWithContent_ReturnsCorrectTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("{x:=1}");
+            Assert.Equal(5, tokens.Count);
+            Assert.Equal(TokenType.LEFT_CURLY,  tokens[0].Type);
+            Assert.Equal(TokenType.VARIABLE,    tokens[1].Type);
+            Assert.Equal(TokenType.ASSIGNMENT,  tokens[2].Type);
+            Assert.Equal(TokenType.INTEGER,     tokens[3].Type);
+            Assert.Equal(TokenType.RIGHT_CURLY, tokens[4].Type);
+        }
+
+        [Fact]
+        public void Tokenize_NoSpaces_IntegerDivision_ReturnsCorrectTokens()
+        {
+            // a//b — must not be confused with two separate slashes
+            var tokens = TokenizerImpl.Tokenize("a//b");
+            Assert.Equal(3, tokens.Count);
+            Assert.Equal(TokenType.VARIABLE, tokens[0].Type);
+            Assert.Equal(TokenType.OPERATOR, tokens[1].Type);
+            Assert.Equal("//",              tokens[1].Value);
+            Assert.Equal(TokenType.VARIABLE, tokens[2].Type);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // MULTILINE INPUT
+        // ─────────────────────────────────────────────────────────────
+
+        #region Multiline Input
+
+        [Fact]
+        public void Tokenize_MultilineInput_ReturnsAllTokens()
+        {
+            string input = "x := 1\ny := 2\nreturn x";
+            var tokens = TokenizerImpl.Tokenize(input);
+
+            Assert.Equal(8, tokens.Count);
+            Assert.Equal(TokenType.VARIABLE,   tokens[0].Type);
+            Assert.Equal(TokenType.ASSIGNMENT, tokens[1].Type);
+            Assert.Equal(TokenType.INTEGER,    tokens[2].Type);
+            Assert.Equal(TokenType.VARIABLE,   tokens[3].Type);
+            Assert.Equal(TokenType.ASSIGNMENT, tokens[4].Type);
+            Assert.Equal(TokenType.INTEGER,    tokens[5].Type);
+            Assert.Equal(TokenType.RETURN,     tokens[6].Type);
+            Assert.Equal(TokenType.VARIABLE,   tokens[7].Type);
+        }
+
+        [Fact]
+        public void Tokenize_WindowsLineEndings_ReturnsAllTokens()
+        {
+            string input = "x := 1\r\ny := 2";
+            var tokens = TokenizerImpl.Tokenize(input);
+            Assert.Equal(6, tokens.Count);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // ERROR / INVALID INPUT
+        // ─────────────────────────────────────────────────────────────
+
+        #region Error and Invalid Input
+
+        [Theory]
+        [InlineData("@")]
+        [InlineData("#")]
+        [InlineData("$")]
+        [InlineData("!")]
+        [InlineData("&")]
+        [InlineData("~")]
+        [InlineData("`")]
+        [InlineData("?")]
+        public void Tokenize_InvalidCharacter_ThrowsArgumentException(string input)
+        {
+            Assert.Throws<ArgumentException>(() => TokenizerImpl.Tokenize(input));
+        }
+
+        [Fact]
+        public void Tokenize_UppercaseLetters_ThrowsArgumentException()
+        {
+            // Variables must be lowercase; uppercase should be invalid
+            Assert.Throws<ArgumentException>(() => TokenizerImpl.Tokenize("X"));
+        }
+
+        [Theory]
+        [InlineData("A")]
+        [InlineData("Z")]
+        [InlineData("Hello")]
+        public void Tokenize_UppercaseInput_ThrowsArgumentException(string input)
+        {
+            Assert.Throws<ArgumentException>(() => TokenizerImpl.Tokenize(input));
+        }
+
+        [Fact]
+        public void Tokenize_ColonWithoutEquals_ThrowsArgumentException()
+        {
+            Assert.Throws<ArgumentException>(() => TokenizerImpl.Tokenize(": "));
+        }
+
+        [Fact]
+        public void Tokenize_FloatWithTrailingDot_ThrowsOrHandlesGracefully()
+        {
+            // "1." without a digit after the decimal point is ambiguous/invalid
+            Assert.ThrowsAny<Exception>(() => TokenizerImpl.Tokenize("1."));
+        }
+
+        [Fact]
+        public void Tokenize_FloatWithLeadingDot_ThrowsArgumentException()
+        {
+            // ".5" without a leading digit is invalid (only positive floats allowed)
+            Assert.Throws<ArgumentException>(() => TokenizerImpl.Tokenize(".5"));
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // TOKEN COUNT / COVERAGE
+        // ─────────────────────────────────────────────────────────────
+
+        #region Token Type Coverage
+
+        [Fact]
+        public void Tokenize_AllTokenTypesCovered_EachTypeCanBeProduced()
+        {
+            // VARIABLE
+            Assert.Equal(TokenType.VARIABLE, TokenizerImpl.Tokenize("x")[0].Type);
+            // RETURN
+            Assert.Equal(TokenType.RETURN, TokenizerImpl.Tokenize("return")[0].Type);
+            // INTEGER
+            Assert.Equal(TokenType.INTEGER, TokenizerImpl.Tokenize("42")[0].Type);
+            // FLOAT
+            Assert.Equal(TokenType.DOUBLE, TokenizerImpl.Tokenize("3.14")[0].Type);
+            // OPERATOR (plus)
+            Assert.Equal(TokenType.OPERATOR, TokenizerImpl.Tokenize("+")[0].Type);
+            // ASSIGNMENT
+            Assert.Equal(TokenType.ASSIGNMENT, TokenizerImpl.Tokenize(":=")[0].Type);
+            // LEFT_PAREN
+            Assert.Equal(TokenType.LEFT_PAREN, TokenizerImpl.Tokenize("(")[0].Type);
+            // RIGHT_PAREN
+            Assert.Equal(TokenType.RIGHT_PAREN, TokenizerImpl.Tokenize(")")[0].Type);
+            // LEFT_CURLY
+            Assert.Equal(TokenType.LEFT_CURLY, TokenizerImpl.Tokenize("{")[0].Type);
+            // RIGHT_CURLY
+            Assert.Equal(TokenType.RIGHT_CURLY, TokenizerImpl.Tokenize("}")[0].Type);
+        }
+
+        [Theory]
+        [InlineData("+",  TokenType.OPERATOR)]
+        [InlineData("-",  TokenType.OPERATOR)]
+        [InlineData("*",  TokenType.OPERATOR)]
+        [InlineData("/",  TokenType.OPERATOR)]
+        [InlineData("//", TokenType.OPERATOR)]
+        [InlineData("%",  TokenType.OPERATOR)]
+        [InlineData("**",  TokenType.OPERATOR)]
+        public void Tokenize_EachArithmeticOperator_ReturnsOperatorType(string op, TokenType expected)
+        {
+            var tokens = TokenizerImpl.Tokenize(op);
+            Assert.Single(tokens);
+            Assert.Equal(expected, tokens[0].Type);
+            Assert.Equal(op, tokens[0].Value);
+        }
+
+        [Theory]
+        [InlineData("(", TokenType.LEFT_PAREN)]
+        [InlineData(")", TokenType.RIGHT_PAREN)]
+        [InlineData("{", TokenType.LEFT_CURLY)]
+        [InlineData("}", TokenType.RIGHT_CURLY)]
+        public void Tokenize_StructuralTokens_ReturnsCorrectType(string input, TokenType expected)
+        {
+            var tokens = TokenizerImpl.Tokenize(input);
+            Assert.Single(tokens);
+            Assert.Equal(expected, tokens[0].Type);
+        }
+
+        [Theory]
+        [InlineData("0",       TokenType.INTEGER)]
+        [InlineData("1",       TokenType.INTEGER)]
+        [InlineData("999",     TokenType.INTEGER)]
+        [InlineData("0.0",     TokenType.DOUBLE)]
+        [InlineData("1.5",     TokenType.DOUBLE)]
+        [InlineData("123.456", TokenType.DOUBLE)]
+        public void Tokenize_NumericLiterals_ReturnsCorrectType(string input, TokenType expected)
+        {
+            var tokens = TokenizerImpl.Tokenize(input);
+            Assert.Single(tokens);
+            Assert.Equal(expected, tokens[0].Type);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // RETURN TYPE AND COUNT SANITY
+        // ─────────────────────────────────────────────────────────────
+
+        #region Return Type Sanity
+
+        [Fact]
+        public void Tokenize_AlwaysReturnsList_NotNull()
+        {
+            var tokens = TokenizerImpl.Tokenize("x := 1");
+            Assert.NotNull(tokens);
+            Assert.IsType<List<Token>>(tokens);
+        }
+
+        [Fact]
+        public void Tokenize_LongExpression_CountMatchesExpected()
+        {
+            // x := ( a + b ) * ( c - d ) // 2
+            string input = "x := ( a + b ) * ( c - d ) // 2";
+            var tokens = TokenizerImpl.Tokenize(input);
+            // x  :=  (  a  +  b  )  *  (  c  -  d  )  //  2  => 15 tokens
+            Assert.Equal(15, tokens.Count);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────
+        // DUPLICATE / REPEATED TOKENS
+        // ─────────────────────────────────────────────────────────────
+
+        #region Duplicate Token Tests
+
+        [Fact]
+        public void Tokenize_RepeatedVariable_ReturnsDuplicateTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("x x x");
+            Assert.Equal(3, tokens.Count);
+            Assert.All(tokens, t =>
+            {
+                Assert.Equal(TokenType.VARIABLE, t.Type);
+                Assert.Equal("x", t.Value);
+            });
+        }
+
+        [Fact]
+        public void Tokenize_RepeatedIntegers_ReturnsDuplicateTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("1 1 1");
+            Assert.Equal(3, tokens.Count);
+            Assert.All(tokens, t =>
+            {
+                Assert.Equal(TokenType.INTEGER, t.Type);
+                Assert.Equal("1", t.Value);
+            });
+        }
+
+        [Fact]
+        public void Tokenize_RepeatedOperators_ReturnsDuplicateTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("+ + +");
+            Assert.Equal(3, tokens.Count);
+            Assert.All(tokens, t => Assert.Equal(TokenType.OPERATOR, t.Type));
+        }
+
+        [Fact]
+        public void Tokenize_RepeatedReturn_ReturnsMultipleReturnTokens()
+        {
+            var tokens = TokenizerImpl.Tokenize("return return");
+            Assert.Equal(2, tokens.Count);
+            Assert.All(tokens, t => Assert.Equal(TokenType.RETURN, t.Type));
+        }
+
+        #endregion
     }
 }

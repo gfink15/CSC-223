@@ -28,8 +28,7 @@ public static class TokenizerImpl
         List<Token> Tokens = new List<Token>();
         string curr = "";  // Current token being built
         string currType = "";  // Type of current token being built
-        string extendedSourceCode = source_code + " ";  // Add space to process last token
-        foreach (char c in extendedSourceCode)
+        foreach (char c in source_code + " ")
         {
             // Handle completion of number tokens
             if (currType == "number")
@@ -96,9 +95,8 @@ public static class TokenizerImpl
                 else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%') (curr, currType) = (c.ToString(), "operator");
                 else if (char.IsDigit(c)) (curr, currType) = (c.ToString(), "number");
                 else if (char.IsLetter(c)) (curr, currType) = (c.ToString(), "string");
-                else if (char.IsWhiteSpace(c)) continue;
                 else if (c == ':') (curr, currType) = (c.ToString(), "assignment");
-                else throw new ArgumentException("Invalid character: "+c);
+                else if (!char.IsWhiteSpace(c)) throw new ArgumentException("Invalid character: "+c);
             }
 
         }
@@ -135,7 +133,7 @@ public static class TokenizerImpl
     /// <returns>A RETURN token if the string is "return", otherwise a VARIABLE token.</returns>
     public static Token HandleString(string curr)
     {
-        if (curr == "return") return new Token(TokenConstants.RETURN, TokenType.RETURN);
+        if (curr == TokenConstants.RETURN) return new Token(TokenConstants.RETURN, TokenType.RETURN);
         else return new Token(curr, TokenType.VARIABLE);
     }
 

@@ -102,11 +102,9 @@ public class Token
     /// <exception cref="ArgumentException">Thrown when obj is not a Token.</exception>
     public override bool Equals(Object? obj)
     {
-        if (obj is Token)
+        if (obj is Token other)
         {
-            var other = (Token)obj;
-            if (this.Value == other.Value && this.Type == other.Type) return true;
-            return false;
+            return (this.Value == other.Value && this.Type == other.Type);
         }
         throw new ArgumentException("Comparision not legal.");
     }

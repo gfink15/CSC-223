@@ -14,12 +14,21 @@ namespace Homework
             {
                 currentNode = currentNode.Left;
             }
-            currentNode.Left = new TreeNode<DataT>(null, default, new TreeNode<DataT>(e));
+            currentNode.Right = new TreeNode<DataT>(e);
         }
         protected void RemoveTop(TreeNode<DataT> n)
         {
             this.Root = this.Root.Left;
         }
+        // public string ToString()
+        // {
+        //     TreeNode<DataT> currentNode = Root;
+        //     while(currentNode.Left != null)
+        //     {
+        //         currentNode = currentNode.Left;
+        //     }
+        //     currentNode.Left = new TreeNode<DataT>(null, default, new TreeNode<DataT>(e));
+        // }
         protected class TreeNode <T> 
         {
             public TreeNode <T> Left { get ; set ; }
@@ -58,7 +67,7 @@ namespace Homework
             private int CalculateBaseTen(TreeNode<int> n)
             {
                 if (n.Left == null) return n.Right.Data;
-                return n.Right.Data + 2 * CalculateBaseTen(n.Left);
+                return n.Right.Data + (2 * CalculateBaseTen(n.Left));
             }
             public void Increment()
             {

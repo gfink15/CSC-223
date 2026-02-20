@@ -35,6 +35,7 @@ public static class TokenConstants
     public const string MINUS = "-";
     public const string MULTIPLY = "*";
     public const string DIVIDE = "/";
+    public const string MODULUS = "%";
     public const string INTEGERDIVIDE = "//";
     public const string EXPONENTIATE = "**";
     public const string ASSIGNMENT = ":=";

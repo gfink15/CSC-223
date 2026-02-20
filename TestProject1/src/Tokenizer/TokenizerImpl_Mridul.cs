@@ -93,11 +93,12 @@ public static class TokenizerImpl
             if (currType == "")
             {   
                 if (c == '(' || c == ')' || c == '{' || c == '}') (curr, currType) = (c.ToString(), "parens");
-                else if (c == '+' || c == '-' || c == '*' || c == '/') (curr, currType) = (c.ToString(), "operator");
+                else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%') (curr, currType) = (c.ToString(), "operator");
                 else if (char.IsDigit(c)) (curr, currType) = (c.ToString(), "number");
                 else if (char.IsLetter(c)) (curr, currType) = (c.ToString(), "string");
                 else if (char.IsWhiteSpace(c)) continue;
                 else if (c == ':') (curr, currType) = (c.ToString(), "assignment");
+                else throw new ArgumentException("Invalid character: "+c);
             }
 
         }
@@ -112,7 +113,8 @@ public static class TokenizerImpl
     /// <returns>An assignment token.</returns>
     public static Token HandleAssignment(string curr)
     {
-        return new Token(TokenConstants.ASSIGNMENT, TokenType.ASSIGNMENT);
+        if (curr == ":=") return new Token(TokenConstants.ASSIGNMENT, TokenType.ASSIGNMENT);
+        else throw new ArgumentException("Invalid operator: " + curr);
     }
 
     /// <summary>
@@ -166,6 +168,7 @@ public static class TokenizerImpl
         else if (curr == "/") return new Token(TokenConstants.DIVIDE, TokenType.OPERATOR);
         else if (curr == "//") return new Token(TokenConstants.INTEGERDIVIDE, TokenType.OPERATOR);
         else if (curr == "**") return new Token(TokenConstants.EXPONENTIATE, TokenType.OPERATOR);
+        else if (curr == "%") return new Token(TokenConstants.MODULUS, TokenType.OPERATOR);
         else throw new Exception("Invalid operator: " + curr);
     }
 }

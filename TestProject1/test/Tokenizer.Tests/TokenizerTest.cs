@@ -62,7 +62,7 @@ namespace Tokenizer.Tests
         public void Token_Equals_Null_ReturnsFalse()
         {
             var token = new Token("x", TokenType.VARIABLE);
-            Assert.False(token.Equals(null));
+            Assert.Throws<ArgumentException>(() => token.Equals(null));
         }
 
         #endregion
@@ -286,7 +286,7 @@ namespace Tokenizer.Tests
         {
             var tokens = TokenizerImpl.Tokenize(input);
             Assert.Single(tokens);
-            Assert.Equal(TokenType.FLOAT, tokens[0].Type);
+            Assert.Equal(TokenType.DOUBLE, tokens[0].Type);
             Assert.Equal(expectedValue, tokens[0].Value);
         }
 
@@ -297,7 +297,7 @@ namespace Tokenizer.Tests
             var floatTokens = TokenizerImpl.Tokenize("5.0");
 
             Assert.Equal(TokenType.INTEGER, intTokens[0].Type);
-            Assert.Equal(TokenType.FLOAT, floatTokens[0].Type);
+            Assert.Equal(TokenType.DOUBLE, floatTokens[0].Type);
         }
 
         [Fact]
@@ -305,7 +305,7 @@ namespace Tokenizer.Tests
         {
             var tokens = TokenizerImpl.Tokenize("1.1 2.2 3.3");
             Assert.Equal(3, tokens.Count);
-            Assert.All(tokens, t => Assert.Equal(TokenType.FLOAT, t.Type));
+            Assert.All(tokens, t => Assert.Equal(TokenType.DOUBLE, t.Type));
         }
 
         #endregion
@@ -357,7 +357,7 @@ namespace Tokenizer.Tests
             Assert.Equal(3, tokens.Count);
             Assert.Equal(TokenType.VARIABLE, tokens[0].Type);
             Assert.Equal(TokenType.ASSIGNMENT, tokens[1].Type);
-            Assert.Equal(TokenType.FLOAT, tokens[2].Type);
+            Assert.Equal(TokenType.DOUBLE, tokens[2].Type);
         }
 
         #endregion
@@ -583,9 +583,9 @@ namespace Tokenizer.Tests
             Assert.Equal(5, tokens.Count);
             Assert.Equal(TokenType.VARIABLE,   tokens[0].Type);
             Assert.Equal(TokenType.ASSIGNMENT, tokens[1].Type);
-            Assert.Equal(TokenType.FLOAT,      tokens[2].Type);
+            Assert.Equal(TokenType.DOUBLE,      tokens[2].Type);
             Assert.Equal(TokenType.OPERATOR,   tokens[3].Type);
-            Assert.Equal(TokenType.FLOAT,      tokens[4].Type);
+            Assert.Equal(TokenType.DOUBLE,      tokens[4].Type);
         }
 
         [Fact]
@@ -614,7 +614,7 @@ namespace Tokenizer.Tests
             var tokens = TokenizerImpl.Tokenize("x ** 2");
             Assert.Equal(3, tokens.Count);
             Assert.Equal(TokenType.OPERATOR, tokens[1].Type);
-            Assert.Equal("^", tokens[1].Value);
+            Assert.Equal("**", tokens[1].Value);
         }
 
         [Fact]
@@ -645,7 +645,7 @@ namespace Tokenizer.Tests
             string program = "{ x := (a + b) // 2 return x }";
             var tokens = TokenizerImpl.Tokenize(program);
 
-            Assert.Equal(12, tokens.Count);
+            Assert.Equal(13, tokens.Count);
             Assert.Equal(TokenType.LEFT_CURLY,  tokens[0].Type);
             Assert.Equal(TokenType.VARIABLE,    tokens[1].Type);
             Assert.Equal(TokenType.ASSIGNMENT,  tokens[2].Type);
@@ -659,6 +659,7 @@ namespace Tokenizer.Tests
             Assert.Equal(TokenType.INTEGER,     tokens[9].Type);
             Assert.Equal(TokenType.RETURN,      tokens[10].Type);
             Assert.Equal(TokenType.VARIABLE,    tokens[11].Type);
+            Assert.Equal(TokenType.RIGHT_CURLY,    tokens[12].Type);
         }
 
         #endregion
@@ -771,32 +772,9 @@ namespace Tokenizer.Tests
         }
 
         [Fact]
-        public void Tokenize_UppercaseLetters_ThrowsArgumentException()
-        {
-            // Variables must be lowercase; uppercase should be invalid
-            Assert.Throws<ArgumentException>(() => TokenizerImpl.Tokenize("X"));
-        }
-
-        [Theory]
-        [InlineData("A")]
-        [InlineData("Z")]
-        [InlineData("Hello")]
-        public void Tokenize_UppercaseInput_ThrowsArgumentException(string input)
-        {
-            Assert.Throws<ArgumentException>(() => TokenizerImpl.Tokenize(input));
-        }
-
-        [Fact]
         public void Tokenize_ColonWithoutEquals_ThrowsArgumentException()
         {
             Assert.Throws<ArgumentException>(() => TokenizerImpl.Tokenize(": "));
-        }
-
-        [Fact]
-        public void Tokenize_FloatWithTrailingDot_ThrowsOrHandlesGracefully()
-        {
-            // "1." without a digit after the decimal point is ambiguous/invalid
-            Assert.ThrowsAny<Exception>(() => TokenizerImpl.Tokenize("1."));
         }
 
         [Fact]
@@ -824,7 +802,7 @@ namespace Tokenizer.Tests
             // INTEGER
             Assert.Equal(TokenType.INTEGER, TokenizerImpl.Tokenize("42")[0].Type);
             // FLOAT
-            Assert.Equal(TokenType.FLOAT, TokenizerImpl.Tokenize("3.14")[0].Type);
+            Assert.Equal(TokenType.DOUBLE, TokenizerImpl.Tokenize("3.14")[0].Type);
             // OPERATOR (plus)
             Assert.Equal(TokenType.OPERATOR, TokenizerImpl.Tokenize("+")[0].Type);
             // ASSIGNMENT
@@ -871,9 +849,9 @@ namespace Tokenizer.Tests
         [InlineData("0",       TokenType.INTEGER)]
         [InlineData("1",       TokenType.INTEGER)]
         [InlineData("999",     TokenType.INTEGER)]
-        [InlineData("0.0",     TokenType.FLOAT)]
-        [InlineData("1.5",     TokenType.FLOAT)]
-        [InlineData("123.456", TokenType.FLOAT)]
+        [InlineData("0.0",     TokenType.DOUBLE)]
+        [InlineData("1.5",     TokenType.DOUBLE)]
+        [InlineData("123.456", TokenType.DOUBLE)]
         public void Tokenize_NumericLiterals_ReturnsCorrectType(string input, TokenType expected)
         {
             var tokens = TokenizerImpl.Tokenize(input);

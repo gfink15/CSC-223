@@ -1,83 +1,115 @@
-using System;
+/**
+ * Token Class: Represents a single token with a type and value
+ * Claude AI was only used for writing XML and inline comments.
+ * 
+ * @author Graham Fink, Mridul Agrawal
+ * @date   2/19/2026
+ */
+
 using System.Reflection.Metadata;
-using System.Security.Cryptography.X509Certificates;
+using System.Reflection.Metadata.Ecma335;
+using Xunit.Sdk;
 
-namespace Tokenizer
+namespace Tokenizer;
+
+/// <summary>
+/// Defines the types of tokens recognized by the tokenizer.
+/// </summary>
+public enum TokenType
 {
-    public enum TokenType
-    {
-        VARIABLE,
-        RETURN,
-        INTEGER,
-        FLOAT,
-        OPERATOR,
-        ASSIGNMENT,
-        LEFT_PAREN,
-        RIGHT_PAREN,
-        LEFT_CURLY,
-        RIGHT_CURLY
-    }
-    public static class TokenConstants
-    {
-        public const string ASSIGNMENT = ":=";
-        public const string PLUS = "+";
-        public const string MINUS = "-";
-        public const string TIMES = "*";
-        public const string FLOAT_DIVISION = "/";
-        public const string INT_DIVISION = "//";
-        public const string MODULUS = "%";
-        public const string EXPONENT = "**";
-        public const string LEFT_PAREN = "(";
-        public const string RIGHT_PAREN = ")";
-        public const string LEFT_CURLY = "{";
+    VARIABLE,
+    RETURN,
+    INTEGER,
+    DOUBLE,
+    OPERATOR,
+    ASSIGNMENT,
+    LEFT_PAREN,
+    RIGHT_PAREN,
+    LEFT_CURLY,
+    RIGHT_CURLY
+}
 
-        public const string RIGHT_CURLY = "}";
-        public const string DECIMAL_POINT = ".";
-        public const string RETURN = "return";
-    }
-    public class Token
+/// <summary>
+/// Constants for recognized token values and operators.
+/// </summary>
+public static class TokenConstants
+{
+    public const string LEFT_PAREN = "(";
+    public const string RIGHT_PAREN = ")";
+    public const string RETURN = "return";
+    public const string PLUS = "+";
+    public const string MINUS = "-";
+    public const string MULTIPLY = "*";
+    public const string DIVIDE = "/";
+    public const string MODULUS = "%";
+    public const string INTEGERDIVIDE = "//";
+    public const string EXPONENTIATE = "**";
+    public const string ASSIGNMENT = ":=";
+    public const string DECIMAL_POINT = ".";
+    public const string LEFT_CURLY = "{";
+    public const string RIGHT_CURLY = "}";
+}
+
+/// <summary>
+/// Represents a single token with a type and value.
+/// </summary>
+public class Token
+{
+    private readonly TokenType _type;
+    private readonly string _value;
+
+    /// <summary>
+    /// Gets the type of this token.
+    /// </summary>
+    public TokenType Type
     {
-        private string _value;
-        private TokenType _type;
-        private int _line;
-        private int _column;
-        private int _len;
-        public string Value
+        get { return _type;}
+    }
+
+    /// <summary>
+    /// Gets the string value of this token.
+    /// </summary>
+    public string Value
+    {
+        get {return _value;}
+    }
+
+    /// <summary>
+    /// Constructs a new token with the specified value and type.
+    /// </summary>
+    /// <param name="Value">The string value of the token.</param>
+    /// <param name="Type">The type of the token.</param>
+    public Token(string Value, TokenType Type)
+    {
+        _value = Value;
+        _type = Type;
+    }
+
+    /// <summary>
+    /// Returns a string representation of this token.
+    /// </summary>
+    /// <returns>String in format "Value : Type".</returns>
+    public override string ToString()
+    {
+        return Value + " : " + Type.ToString();
+    }
+
+    /// <summary>
+    /// Compares this token to another object for equality based on value and type.
+    /// </summary>
+    /// <param name="obj">The object to compare with.</param>
+    /// <returns>True if both tokens have the same value and type.</returns>
+    /// <exception cref="ArgumentException">Thrown when obj is not a Token.</exception>
+    public override bool Equals(Object? obj)
+    {
+        if (obj is Token)
         {
-            get { return _value; }
-        }
-        public TokenType Type
-        {
-            get { return _type; }
-        }
-        public int Line
-        {
-            get { return _line; }
-        }
-        public int Column
-        {
-            get { return _column; }
-        }
-        public int Length
-        {
-            get { return _len; }
-        }
-        public Token(string v, TokenType t, int line = -1, int col = -1, int len = -1)
-        {
-            _value = v;
-            _type = t;
-            _line = line;
-            _column = col;
-            _len = len;
-        }
-        public override string ToString()
-        {
-            return "Value: " + _value + "Type: " + _type + "Line: " + _line + "Column: " + _column + "Length: " + _len;
-        }
-        public bool Equals(Token t)
-        {
-            if (_value == t.Value && _type == t.Type && _line == t.Length && _column == t.Column && _len == t.Length) return true;
+            var other = (Token)obj;
+            if (this.Value == other.Value && this.Type == other.Type) return true;
             return false;
         }
+        throw new ArgumentException("Comparision not legal.");
     }
 }
+
+

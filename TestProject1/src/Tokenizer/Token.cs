@@ -108,6 +108,11 @@ public class Token
         }
         throw new ArgumentException("Comparision not legal.");
     }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 

@@ -1,4 +1,4 @@
-namespace Homework.src
+namespace Homework
 {
     /// <summary>
     /// A binary tree where each internal node stores one data element in its Right child,
@@ -103,20 +103,18 @@ namespace Homework.src
         /// </summary>
         public class BinaryDigitTree : BinaryTree<int>
         {
-            /// <summary>
-            /// Initializes an empty BinaryDigitTree.
-            /// </summary>
             public BinaryDigitTree() : base() { }
-
+            #region Question 1
             /// <summary>
             /// Divides the binary number by two by removing the most significant bit (the root).
             /// Equivalent to a right bit-shift by one.
             /// </summary>
             public void DivideByTwo()
             {
-                RemoveTop(Root);
+                Root = Root.Left;
             }
-
+            #endregion
+            #region Question 2
             /// <summary>
             /// Divides the binary number by 2^n by removing the top n bits.
             /// Equivalent to a right bit-shift by n.
@@ -130,11 +128,12 @@ namespace Homework.src
                 // Remove the top node n times, each time shifting the number right by one bit
                 while (n > 0)
                 {
-                    RemoveTop(Root);
+                    DivideByTwo();
                     n--;
                 }
             }
-
+            #endregion
+            #region Question 3
             /// <summary>
             /// Calculates and returns the base-10 (decimal) value of the stored binary number.
             /// </summary>
@@ -158,7 +157,8 @@ namespace Homework.src
                 // Recursive case: double the value of the left subtree and add this bit
                 return 2 * CalculateBaseTen(n.Left) + n.Right.Data;
             }
-
+            #endregion
+            #region Question 4
             /// <summary>
             /// Increments the binary number stored in the tree by one.
             /// Handles carry propagation automatically.
@@ -191,6 +191,7 @@ namespace Homework.src
                     else Increment(n.Left); // Propagate carry to the next bit
                 }
             }
+            #endregion
         }
     }
 }

@@ -35,16 +35,18 @@ namespace Homework
         {
             // Start traversal from the root
             TreeNode<DataT> currentNode = Root;
+            if (Root.Right == null) Root.Right = new TreeNode<DataT>(e);
+            else {
 
-            // Walk down the left spine to find the leftmost node
-            while (currentNode.Left != null)
-            {
-                currentNode = currentNode.Left;
+                // Walk down the left spine to find the leftmost node
+                while (currentNode.Left != null)
+                {
+                    currentNode = currentNode.Left;
+                }
+
+                // Append a new sentinel (Left) and data node (Right) at the end
+                currentNode.Left = new TreeNode<DataT>(null, default, new TreeNode<DataT>(e));
             }
-
-            // Append a new sentinel (Left) and data node (Right) at the end
-            currentNode.Left = new TreeNode<DataT>(default);
-            currentNode.Right = new TreeNode<DataT>(e);
         }
 
         /// <summary>
@@ -66,12 +68,13 @@ namespace Homework
         {
             string output = "";
             var currentNode = Root;
-
+            if (Root.Right == null) return output;
+            else output = Root.Right.Data + output;
             // Traverse left spine, prepending each Right node's data to build the output string
             while (currentNode.Left != null)
             {
-                output = currentNode.Right.Data + output;
                 currentNode = currentNode.Left;
+                output = currentNode.Right.Data + output;
             }
 
             return output;
@@ -160,7 +163,7 @@ namespace Homework
             private int CalculateBaseTen(TreeNode<int> n)
             {
                 // Base case: reached the least significant bit, return it directly
-                if (n.Left.Left == null) return n.Right.Data;
+                if (n.Left == null) return n.Right.Data;
 
                 // Recursive case: double the value of the left subtree and add this bit
                 return 2 * CalculateBaseTen(n.Left) + n.Right.Data;

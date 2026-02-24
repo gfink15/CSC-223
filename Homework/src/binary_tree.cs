@@ -1,3 +1,11 @@
+/**
+ * Binary Tree Homework: Provides basic implementation for
+ * manipulating binary numbers stored in trees.
+ * Claude AI was only used for writing XML and inline comments.
+ * 
+ * @author Graham Fink, Mridul Agrawal
+ * @date   2/23/2026
+ */
 namespace Homework
 {
     /// <summary>

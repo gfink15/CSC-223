@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Tokenizer;
 
 namespace AST
 {
@@ -45,7 +46,7 @@ namespace AST
             return null;
         }
 
-        public override LiteralNode CreateLiteralNode(object value)
+        public override LiteralNode<T> CreateLiteralNode<T>(T value)
         {
             return null;
         }

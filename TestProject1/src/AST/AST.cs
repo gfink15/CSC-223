@@ -1,3 +1,8 @@
+
+
+using Tokenizer;
+
+
 /**
  * Abstract Syntax Tree: add description
  * Claude AI was only used for writing XML and inline comments.
@@ -5,15 +10,17 @@
  * @author Graham Fink, Mridul Agrawal
  * @date   2/25/2026
  */
-
 namespace AST;
 
 public class AbstractSyntaxTree
 {
-    private Statement _root;
+    public Statement Root
+    {
+        get; set;
+    }
     public AbstractSyntaxTree(Statement e)
     {
-        _root = e;
+        Root = e;
     }
 }
 
@@ -62,6 +69,7 @@ public class VariableNode : ExpressionNode
 
 public abstract class Operator : ExpressionNode
 {
+    
     public Operator(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
         
@@ -78,6 +86,10 @@ public abstract class BinaryOperator : Operator
 
 public class PlusNode : BinaryOperator
 {
+    public override string ToString()
+    {
+        return TokenConstants.PLUS;
+    }
     public PlusNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
         
@@ -86,6 +98,10 @@ public class PlusNode : BinaryOperator
 
 public class MinusNode : BinaryOperator
 {
+    public override string ToString()
+    {
+        return TokenConstants.MINUS;
+    }
     public MinusNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
         
@@ -94,6 +110,10 @@ public class MinusNode : BinaryOperator
 
 public class TimesNode : BinaryOperator
 {
+    public override string ToString()
+    {
+        return TokenConstants.MULTIPLY;
+    }
     public TimesNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
         
@@ -102,6 +122,10 @@ public class TimesNode : BinaryOperator
 
 public class FloatDivNode : BinaryOperator
 {
+    public override string ToString()
+    {
+        return TokenConstants.DIVIDE;
+    }
     public FloatDivNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
         
@@ -110,6 +134,10 @@ public class FloatDivNode : BinaryOperator
 
 public class IntDivNode : BinaryOperator
 {
+    public override string ToString()
+    {
+        return TokenConstants.INTEGERDIVIDE;
+    }
     public IntDivNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
         
@@ -118,6 +146,10 @@ public class IntDivNode : BinaryOperator
 
 public class ModulusNode : BinaryOperator
 {
+    public override string ToString()
+    {
+        return TokenConstants.MODULUS;
+    }
     public ModulusNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
         
@@ -126,6 +158,10 @@ public class ModulusNode : BinaryOperator
 
 public class ExponentiationNode : BinaryOperator
 {
+    public override string ToString()
+    {
+        return TokenConstants.EXPONENTIATE;
+    }
     public ExponentiationNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
         
@@ -145,6 +181,10 @@ public class BlockStmt : Statement
 
 public class AssignmentStmt : Statement
 {
+    public override string ToString()
+    {
+        return TokenConstants.ASSIGNMENT;
+    }
     public ExpressionNode Left
     {
         get; set;
@@ -162,6 +202,10 @@ public class AssignmentStmt : Statement
 
 public class ReturnStmt : Statement
 {
+    public override string ToString()
+    {
+        return TokenConstants.RETURN;
+    }
     public ExpressionNode Child
     {
         get; set;

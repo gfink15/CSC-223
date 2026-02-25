@@ -40,18 +40,18 @@ public abstract class ExpressionNode
     }
 }
 
-public class LiteralNode<T> : ExpressionNode
+public class LiteralNode : ExpressionNode
 {
     public override string Unparse(int level = 0)
     {
         return Data.ToString();
     }
-    public T Data
+    public object Data
     {
         get;
         set;
     }
-    public LiteralNode(T d) : base(default, default)
+    public LiteralNode(object d) : base(default, default)
     {
         Data = d;
     }

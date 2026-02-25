@@ -10,10 +10,10 @@ namespace AST.Tests
     public class ASTTests
     {
         // ─────────────────────────────────────────────────────────────
-        // LiteralNode<T> Tests
+        // LiteralNodeests
         // ─────────────────────────────────────────────────────────────
 
-        /// <summary>Tests that a LiteralNode&lt;int&gt; stores its value correctly in .Data.</summary>
+        /// <summary>Tests that a LiteralNodent&gt; stores its value correctly in .Data.</summary>
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
@@ -22,11 +22,11 @@ namespace AST.Tests
         [InlineData(999999)]
         public void LiteralNode_Int_Data_StoresCorrectValue(int value)
         {
-            var node = new LiteralNode<int>(value);
+            var node = new LiteralNode(value);
             Assert.Equal(value, node.Data);
         }
 
-        /// <summary>Tests that a LiteralNode&lt;double&gt; stores its value correctly in .Data.</summary>
+        /// <summary>Tests that a LiteralNodeouble&gt; stores its value correctly in .Data.</summary>
         [Theory]
         [InlineData(0.0)]
         [InlineData(3.14)]
@@ -34,104 +34,104 @@ namespace AST.Tests
         [InlineData(100.001)]
         public void LiteralNode_Double_Data_StoresCorrectValue(double value)
         {
-            var node = new LiteralNode<double>(value);
+            var node = new LiteralNode(value);
             Assert.Equal(value, node.Data);
         }
 
-        /// <summary>Tests that a LiteralNode&lt;string&gt; stores its value correctly in .Data.</summary>
+        /// <summary>Tests that a LiteralNodetring&gt; stores its value correctly in .Data.</summary>
         [Theory]
         [InlineData("hello")]
         [InlineData("")]
         [InlineData("123")]
         public void LiteralNode_String_Data_StoresCorrectValue(string value)
         {
-            var node = new LiteralNode<string>(value);
+            var node = new LiteralNode(value);
             Assert.Equal(value, node.Data);
         }
 
-        /// <summary>Tests that LiteralNode&lt;int&gt; unparses to the correct string representation.</summary>
+        /// <summary>Tests that LiteralNodent&gt; unparses to the correct string representation.</summary>
         [Theory]
         [InlineData(0)]
         [InlineData(42)]
         [InlineData(-7)]
         public void LiteralNode_Int_Unparse_ReturnsCorrectString(int value)
         {
-            var node = new LiteralNode<int>(value);
+            var node = new LiteralNode(value);
             Assert.Equal(value.ToString(), node.Unparse());
         }
 
-        /// <summary>Tests that LiteralNode&lt;double&gt; unparses to a string containing the value.</summary>
+        /// <summary>Tests that LiteralNodeouble&gt; unparses to a string containing the value.</summary>
         [Theory]
         [InlineData(3.14)]
         [InlineData(-2.5)]
         [InlineData(0.0)]
         public void LiteralNode_Double_Unparse_ReturnsCorrectString(double value)
         {
-            var node = new LiteralNode<double>(value);
+            var node = new LiteralNode(value);
             Assert.Contains(value.ToString(), node.Unparse());
         }
 
-        /// <summary>Tests that LiteralNode&lt;int&gt; unparses identically regardless of indentation level.</summary>
+        /// <summary>Tests that LiteralNodent&gt; unparses identically regardless of indentation level.</summary>
         [Theory]
         [InlineData(5, 0)]
         [InlineData(5, 1)]
         [InlineData(5, 3)]
         public void LiteralNode_Int_Unparse_IgnoresIndentationLevel(int value, int level)
         {
-            var node = new LiteralNode<int>(value);
+            var node = new LiteralNode(value);
             Assert.Equal(value.ToString(), node.Unparse(level));
         }
 
-        /// <summary>Tests that LiteralNode&lt;int&gt; Unparse() and Unparse(0) return the same result.</summary>
+        /// <summary>Tests that LiteralNodent&gt; Unparse() and Unparse(0) return the same result.</summary>
         [Theory]
         [InlineData(0)]
         [InlineData(42)]
         [InlineData(-1)]
         public void LiteralNode_Int_DefaultLevel_EqualsLevelZero(int value)
         {
-            var node = new LiteralNode<int>(value);
+            var node = new LiteralNode(value);
             Assert.Equal(node.Unparse(), node.Unparse(0));
         }
 
-        /// <summary>Tests that LiteralNode&lt;double&gt; Unparse() and Unparse(0) return the same result.</summary>
+        /// <summary>Tests that LiteralNodeouble&gt; Unparse() and Unparse(0) return the same result.</summary>
         [Theory]
         [InlineData(1.5)]
         [InlineData(0.0)]
         public void LiteralNode_Double_DefaultLevel_EqualsLevelZero(double value)
         {
-            var node = new LiteralNode<double>(value);
+            var node = new LiteralNode(value);
             Assert.Equal(node.Unparse(), node.Unparse(0));
         }
 
-        /// <summary>Tests that LiteralNode&lt;int&gt; is an instance of ExpressionNode.</summary>
+        /// <summary>Tests that LiteralNodent&gt; is an instance of ExpressionNode.</summary>
         [Fact]
         public void LiteralNode_Int_IsExpressionNode()
         {
-            Assert.IsAssignableFrom<ExpressionNode>(new LiteralNode<int>(1));
+            Assert.IsAssignableFrom<ExpressionNode>(new LiteralNode(1));
         }
 
-        /// <summary>Tests that LiteralNode&lt;double&gt; is an instance of ExpressionNode.</summary>
+        /// <summary>Tests that LiteralNodeouble&gt; is an instance of ExpressionNode.</summary>
         [Fact]
         public void LiteralNode_Double_IsExpressionNode()
         {
-            Assert.IsAssignableFrom<ExpressionNode>(new LiteralNode<double>(1.0));
+            Assert.IsAssignableFrom<ExpressionNode>(new LiteralNode(1.0));
         }
 
-        /// <summary>Tests that two LiteralNode&lt;int&gt; instances with the same value have equal .Data.</summary>
+        /// <summary>Tests that two LiteralNodent&gt; instances with the same value have equal .Data.</summary>
         [Fact]
         public void LiteralNode_Int_TwoNodesWithSameValue_DataAreEqual()
         {
-            var a = new LiteralNode<int>(7);
-            var b = new LiteralNode<int>(7);
+            var a = new LiteralNode(7);
+            var b = new LiteralNode(7);
             Assert.Equal(a.Data, b.Data);
         }
 
-        /// <summary>Tests that two LiteralNode&lt;int&gt; instances with different values have different .Data.</summary>
+        /// <summary>Tests that two LiteralNodent&gt; instances with different values have different .Data.</summary>
         [Fact]
         public void LiteralNode_Int_TwoNodesWithDifferentValues_DataAreNotEqual()
         {
-            var a = new LiteralNode<int>(3);
-            var b = new LiteralNode<int>(9);
+            var a = new LiteralNode(3);
+            var b = new LiteralNode(9);
             Assert.NotEqual(a.Data, b.Data);
         }
 
@@ -187,7 +187,7 @@ namespace AST.Tests
         [Fact]
         public void PlusNode_Unparse_TwoIntLiterals()
         {
-            var node = new PlusNode(new LiteralNode<int>(2), new LiteralNode<int>(3));
+            var node = new PlusNode(new LiteralNode(2), new LiteralNode(3));
             string result = node.Unparse();
             Assert.Contains("2", result);
             Assert.Contains("3", result);
@@ -198,7 +198,7 @@ namespace AST.Tests
         [Fact]
         public void MinusNode_Unparse_TwoIntLiterals()
         {
-            var node = new MinusNode(new LiteralNode<int>(10), new LiteralNode<int>(4));
+            var node = new MinusNode(new LiteralNode(10), new LiteralNode(4));
             string result = node.Unparse();
             Assert.Contains("10", result);
             Assert.Contains("4",  result);
@@ -209,7 +209,7 @@ namespace AST.Tests
         [Fact]
         public void TimesNode_Unparse_TwoIntLiterals()
         {
-            var node = new TimesNode(new LiteralNode<int>(3), new LiteralNode<int>(5));
+            var node = new TimesNode(new LiteralNode(3), new LiteralNode(5));
             string result = node.Unparse();
             Assert.Contains("3", result);
             Assert.Contains("5", result);
@@ -220,7 +220,7 @@ namespace AST.Tests
         [Fact]
         public void FloatDivNode_Unparse_TwoDoubleLiterals()
         {
-            var node = new FloatDivNode(new LiteralNode<double>(7.0), new LiteralNode<double>(2.0));
+            var node = new FloatDivNode(new LiteralNode(7.0), new LiteralNode(2.0));
             string result = node.Unparse();
             Assert.Contains("/", result);
         }
@@ -229,7 +229,7 @@ namespace AST.Tests
         [Fact]
         public void IntDivNode_Unparse_TwoIntLiterals()
         {
-            var node = new IntDivNode(new LiteralNode<int>(7), new LiteralNode<int>(2));
+            var node = new IntDivNode(new LiteralNode(7), new LiteralNode(2));
             string result = node.Unparse();
             Assert.Contains("7",  result);
             Assert.Contains("2",  result);
@@ -240,7 +240,7 @@ namespace AST.Tests
         [Fact]
         public void ModulusNode_Unparse_TwoIntLiterals()
         {
-            var node = new ModulusNode(new LiteralNode<int>(9), new LiteralNode<int>(4));
+            var node = new ModulusNode(new LiteralNode(9), new LiteralNode(4));
             string result = node.Unparse();
             Assert.Contains("9", result);
             Assert.Contains("4", result);
@@ -251,7 +251,7 @@ namespace AST.Tests
         [Fact]
         public void ExponentiationNode_Unparse_TwoIntLiterals()
         {
-            var node = new ExponentiationNode(new LiteralNode<int>(2), new LiteralNode<int>(8));
+            var node = new ExponentiationNode(new LiteralNode(2), new LiteralNode(8));
             string result = node.Unparse();
             Assert.Contains("2",  result);
             Assert.Contains("8",  result);
@@ -285,8 +285,8 @@ namespace AST.Tests
         [Fact]
         public void NestedExpression_TimesPlusLiterals_Unparse()
         {
-            var plus  = new PlusNode(new LiteralNode<int>(2), new LiteralNode<int>(3));
-            var times = new TimesNode(plus, new LiteralNode<int>(4));
+            var plus  = new PlusNode(new LiteralNode(2), new LiteralNode(3));
+            var times = new TimesNode(plus, new LiteralNode(4));
 
             string result = times.Unparse();
 
@@ -301,8 +301,8 @@ namespace AST.Tests
         [Fact]
         public void NestedExpression_DeepNesting_Unparse()
         {
-            var plus  = new PlusNode(new LiteralNode<int>(2), new LiteralNode<int>(3));
-            var minus = new MinusNode(new LiteralNode<int>(6), new LiteralNode<int>(1));
+            var plus  = new PlusNode(new LiteralNode(2), new LiteralNode(3));
+            var minus = new MinusNode(new LiteralNode(6), new LiteralNode(1));
             var times = new TimesNode(plus, minus);
 
             string result = times.Unparse();
@@ -340,7 +340,7 @@ namespace AST.Tests
         [Fact]
         public void AssignmentStmt_Unparse_SimpleIntAssignment()
         {
-            var stmt = new AssignmentStmt(new VariableNode("x"), new LiteralNode<int>(42));
+            var stmt = new AssignmentStmt(new VariableNode("x"), new LiteralNode(42));
             string result = stmt.Unparse();
 
             Assert.Contains("x",  result);
@@ -352,7 +352,7 @@ namespace AST.Tests
         [Fact]
         public void AssignmentStmt_Unparse_DoubleLiteralRHS()
         {
-            var stmt = new AssignmentStmt(new VariableNode("pi"), new LiteralNode<double>(3.14));
+            var stmt = new AssignmentStmt(new VariableNode("pi"), new LiteralNode(3.14));
             string result = stmt.Unparse();
 
             Assert.Contains("pi", result);
@@ -366,7 +366,7 @@ namespace AST.Tests
             // y := (2 + 3)
             var stmt = new AssignmentStmt(
                 new VariableNode("y"),
-                new PlusNode(new LiteralNode<int>(2), new LiteralNode<int>(3))
+                new PlusNode(new LiteralNode(2), new LiteralNode(3))
             );
             string result = stmt.Unparse();
 
@@ -381,7 +381,7 @@ namespace AST.Tests
         [Fact]
         public void AssignmentStmt_Unparse_IndentationIncreasesWithLevel()
         {
-            var stmt = new AssignmentStmt(new VariableNode("x"), new LiteralNode<int>(1));
+            var stmt = new AssignmentStmt(new VariableNode("x"), new LiteralNode(1));
             string level0 = stmt.Unparse(0);
             string level1 = stmt.Unparse(1);
             string level2 = stmt.Unparse(2);
@@ -400,7 +400,7 @@ namespace AST.Tests
         [Fact]
         public void ReturnStmt_Unparse_IntLiteral()
         {
-            var stmt = new ReturnStmt(new LiteralNode<int>(0));
+            var stmt = new ReturnStmt(new LiteralNode(0));
             string result = stmt.Unparse();
 
             Assert.Contains("return", result);
@@ -411,7 +411,7 @@ namespace AST.Tests
         [Fact]
         public void ReturnStmt_Unparse_DoubleLiteral()
         {
-            var stmt = new ReturnStmt(new LiteralNode<double>(2.5));
+            var stmt = new ReturnStmt(new LiteralNode(2.5));
             string result = stmt.Unparse();
             Assert.Contains("return", result);
         }
@@ -450,7 +450,7 @@ namespace AST.Tests
         [InlineData(3)]
         public void ReturnStmt_Unparse_ContainsReturnKeywordAtAnyLevel(int level)
         {
-            var stmt = new ReturnStmt(new LiteralNode<int>(1));
+            var stmt = new ReturnStmt(new LiteralNode(1));
             Assert.Contains("return", stmt.Unparse(level));
         }
 
@@ -475,7 +475,7 @@ namespace AST.Tests
         {
             var stmts = new List<Statement>
             {
-                new AssignmentStmt(new VariableNode("x"), new LiteralNode<int>(5))
+                new AssignmentStmt(new VariableNode("x"), new LiteralNode(5))
             };
             var block  = new BlockStmt(stmts);
             string result = block.Unparse();
@@ -495,8 +495,8 @@ namespace AST.Tests
         {
             var stmts = new List<Statement>
             {
-                new AssignmentStmt(new VariableNode("a"), new LiteralNode<int>(11)),
-                new AssignmentStmt(new VariableNode("b"), new LiteralNode<int>(4)),
+                new AssignmentStmt(new VariableNode("a"), new LiteralNode(11)),
+                new AssignmentStmt(new VariableNode("b"), new LiteralNode(4)),
                 new ReturnStmt(new IntDivNode(new VariableNode("a"), new VariableNode("b")))
             };
             var block  = new BlockStmt(stmts);
@@ -519,8 +519,8 @@ namespace AST.Tests
         {
             var stmts = new List<Statement>
             {
-                new AssignmentStmt(new VariableNode("first"),  new LiteralNode<int>(1)),
-                new AssignmentStmt(new VariableNode("second"), new LiteralNode<int>(2)),
+                new AssignmentStmt(new VariableNode("first"),  new LiteralNode(1)),
+                new AssignmentStmt(new VariableNode("second"), new LiteralNode(2)),
                 new ReturnStmt(new VariableNode("second"))
             };
             var block  = new BlockStmt(stmts);
@@ -540,7 +540,7 @@ namespace AST.Tests
         {
             var stmts = new List<Statement>
             {
-                new AssignmentStmt(new VariableNode("x"), new LiteralNode<int>(1))
+                new AssignmentStmt(new VariableNode("x"), new LiteralNode(1))
             };
             var block  = new BlockStmt(stmts);
             string result = block.Unparse(0);
@@ -562,7 +562,7 @@ namespace AST.Tests
         {
             var inner = new BlockStmt(new List<Statement>
             {
-                new AssignmentStmt(new VariableNode("y"), new LiteralNode<int>(99))
+                new AssignmentStmt(new VariableNode("y"), new LiteralNode(99))
             });
             var outer = new BlockStmt(new List<Statement> { inner });
             string result = outer.Unparse(0);
@@ -581,8 +581,8 @@ namespace AST.Tests
         [Fact]
         public void AllBinaryNodes_AreInstancesOfBinaryOperator()
         {
-            var l = new LiteralNode<int>(1);
-            var r = new LiteralNode<int>(2);
+            var l = new LiteralNode(1);
+            var r = new LiteralNode(2);
 
             Assert.IsAssignableFrom<BinaryOperator>(new PlusNode(l, r));
             Assert.IsAssignableFrom<BinaryOperator>(new MinusNode(l, r));
@@ -597,7 +597,7 @@ namespace AST.Tests
         [Fact]
         public void AllBinaryNodes_AreInstancesOfOperator()
         {
-            var node = new PlusNode(new LiteralNode<int>(1), new LiteralNode<int>(2));
+            var node = new PlusNode(new LiteralNode(1), new LiteralNode(2));
             Assert.IsAssignableFrom<Operator>(node);
         }
 
@@ -605,8 +605,8 @@ namespace AST.Tests
         [Fact]
         public void AllBinaryNodes_AreInstancesOfExpressionNode()
         {
-            var l = new LiteralNode<int>(0);
-            var r = new LiteralNode<int>(0);
+            var l = new LiteralNode(0);
+            var r = new LiteralNode(0);
 
             Assert.IsAssignableFrom<ExpressionNode>(new PlusNode(l, r));
             Assert.IsAssignableFrom<ExpressionNode>(new TimesNode(l, r));
@@ -617,8 +617,8 @@ namespace AST.Tests
         [Fact]
         public void AllStmtTypes_AreStatements()
         {
-            Assert.IsAssignableFrom<Statement>(new AssignmentStmt(new VariableNode("x"), new LiteralNode<int>(1)));
-            Assert.IsAssignableFrom<Statement>(new ReturnStmt(new LiteralNode<int>(0)));
+            Assert.IsAssignableFrom<Statement>(new AssignmentStmt(new VariableNode("x"), new LiteralNode(1)));
+            Assert.IsAssignableFrom<Statement>(new ReturnStmt(new LiteralNode(0)));
             Assert.IsAssignableFrom<Statement>(new BlockStmt(new List<Statement>()));
         }
 
@@ -631,8 +631,8 @@ namespace AST.Tests
         public void Unparse_CalledTwice_ReturnsSameResult()
         {
             var node = new TimesNode(
-                new PlusNode(new LiteralNode<int>(2), new LiteralNode<int>(3)),
-                new LiteralNode<int>(4)
+                new PlusNode(new LiteralNode(2), new LiteralNode(3)),
+                new LiteralNode(4)
             );
             Assert.Equal(node.Unparse(), node.Unparse());
         }
@@ -647,8 +647,8 @@ namespace AST.Tests
             var stmt = new AssignmentStmt(
                 new VariableNode("x"),
                 new TimesNode(
-                    new PlusNode(new LiteralNode<int>(2), new LiteralNode<int>(3)),
-                    new LiteralNode<int>(4)
+                    new PlusNode(new LiteralNode(2), new LiteralNode(3)),
+                    new LiteralNode(4)
                 )
             );
             string result = stmt.Unparse();
@@ -666,8 +666,8 @@ namespace AST.Tests
         [Fact]
         public void AllBinaryNodes_Unparse_NonEmpty()
         {
-            var l = new LiteralNode<int>(1);
-            var r = new LiteralNode<int>(2);
+            var l = new LiteralNode(1);
+            var r = new LiteralNode(2);
 
             Assert.NotEmpty(new PlusNode(l, r).Unparse());
             Assert.NotEmpty(new MinusNode(l, r).Unparse());
@@ -682,8 +682,8 @@ namespace AST.Tests
         [Fact]
         public void AllStatementTypes_Unparse_NonEmpty()
         {
-            Assert.NotEmpty(new AssignmentStmt(new VariableNode("x"), new LiteralNode<int>(1)).Unparse());
-            Assert.NotEmpty(new ReturnStmt(new LiteralNode<int>(0)).Unparse());
+            Assert.NotEmpty(new AssignmentStmt(new VariableNode("x"), new LiteralNode(1)).Unparse());
+            Assert.NotEmpty(new ReturnStmt(new LiteralNode(0)).Unparse());
             Assert.NotEmpty(new BlockStmt(new List<Statement>()).Unparse());
         }
     }

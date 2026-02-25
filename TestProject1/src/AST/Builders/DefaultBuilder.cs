@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Utilities.Containers;
 
 namespace AST
 {
@@ -11,64 +10,64 @@ namespace AST
     public class DefaultBuilder
     {
         // Override all creation methods to return null
-        public virtual PlusNode CreatePlusNode(ExpressionNode left, ExpressionNode right)
+        public PlusNode CreatePlusNode(ExpressionNode left, ExpressionNode right)
         {
-            return new PlusNode(left, right);
+            return null;
         }
 
-        public virtual MinusNode CreateMinusNode(ExpressionNode left, ExpressionNode right)
+        public MinusNode CreateMinusNode(ExpressionNode left, ExpressionNode right)
         {
-            return new MinusNode(left, right);
+            return null;
         }
 
-        public virtual TimesNode CreateTimesNode(ExpressionNode left, ExpressionNode right)
+        public TimesNode CreateTimesNode(ExpressionNode left, ExpressionNode right)
         {
-            return new TimesNode(left, right);
+            return null;
         }
 
-        public virtual FloatDivNode CreateFloatDivNode(ExpressionNode left, ExpressionNode right)
+        public FloatDivNode CreateFloatDivNode(ExpressionNode left, ExpressionNode right)
         {
-            return new FloatDivNode(left, right);
+            return null;
         }
 
-        public virtual IntDivNode CreateIntDivNode(ExpressionNode left, ExpressionNode right)
+        public IntDivNode CreateIntDivNode(ExpressionNode left, ExpressionNode right)
         {
-            return new IntDivNode(left, right);
+            return null;
         }
 
-        public virtual ModulusNode CreateModulusNode(ExpressionNode left, ExpressionNode right)
+        public ModulusNode CreateModulusNode(ExpressionNode left, ExpressionNode right)
         {
-            return new ModulusNode(left, right);
+            return null;
         }
 
-        public virtual ExponentiationNode CreateExponentiationNode(ExpressionNode left, ExpressionNode right)
+        public ExponentiationNode CreateExponentiationNode(ExpressionNode left, ExpressionNode right)
         {
-            return new ExponentiationNode(left, right);
+            return null;
         }
 
-        public virtual LiteralNode<T> CreateLiteralNode<T>(T value)
+        public LiteralNode CreateLiteralNode(object value)
         {
-            return new LiteralNode<T>(value);
+            return null;
         }
 
-        public virtual VariableNode CreateVariableNode(string name)
+        public VariableNode CreateVariableNode(string name)
         {
-            return new VariableNode(name);
+            return null;
         }
 
-        public virtual AssignmentStmt CreateAssignmentStmt(VariableNode variable, ExpressionNode expression)
+        public AssignmentStmt CreateAssignmentStmt(VariableNode variable, ExpressionNode expression)
         {
-            return new AssignmentStmt(variable, expression);
+            return null;
         }
 
-        public virtual ReturnStmt CreateReturnStmt(ExpressionNode expression)
+        public ReturnStmt CreateReturnStmt(ExpressionNode expression)
         {
-            return new ReturnStmt(expression);
+            return null;
         }
 
-        public virtual BlockStmt CreateBlockStmt(SymbolTable<string, object> symbolTable)
+        public BlockStmt CreateBlockStmt(SymbolTable<string, object> symbolTable)
         {
-            return new BlockStmt(symbolTable);
+            return null;
         }
     }
 }

@@ -87,7 +87,7 @@ public abstract class BinaryOperator : Operator
 {
     public override string Unparse(int level = 0)
     {
-        return "(" + Left.Unparse + ToString() + Right.ToString() + ")";
+        return "(" + Left.Unparse(level) + ToString() + Right.Unparse(level) + ")";
     }
     public BinaryOperator(ExpressionNode l, ExpressionNode r) : base(l, r)
     {

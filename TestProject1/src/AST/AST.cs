@@ -200,9 +200,14 @@ public class BlockStmt : Statement
     }
 
     public List<Statement> children;
+    public SymbolTable<string, object> SymbolTable
+    {
+        get; set;
+    }
     public BlockStmt(SymbolTable<string, object> symbolTable) : base()
     {
         children = new List<Statement>();
+        SymbolTable = symbolTable;
     }
 
     public void Add(Statement s)

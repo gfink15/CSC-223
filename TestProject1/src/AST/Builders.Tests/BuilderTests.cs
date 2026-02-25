@@ -797,8 +797,8 @@ namespace AST.Builders.Tests
             var expression = Lit(value);
             var result = builder.CreateAssignmentStmt(variable, expression);
 
-            Assert.Same(expression, result.Left);
-            Assert.Same(variable, result.Right);
+            Assert.Same(expression, result.Right);
+            Assert.Same(variable, result.Left);
         }
 
         [Theory]

@@ -198,10 +198,10 @@ public class BlockStmt : Statement
         return builder;
     }
 
-    public List<Statement> children = new List<Statement>();
-    public BlockStmt(Statement s) : base()
+    public List<Statement> children;
+    public BlockStmt(List<Statement> c) : base()
     {
-        children.Add(s);
+        children = c;
     }
 }
 

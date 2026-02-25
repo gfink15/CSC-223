@@ -7,6 +7,7 @@
  */
 using Tokenizer;
 using Utilities;
+using Utilities.Containers;
 
 namespace AST;
 
@@ -199,9 +200,9 @@ public class BlockStmt : Statement
     }
 
     public List<Statement> children;
-    public BlockStmt(List<Statement> c) : base()
+    public BlockStmt(SymbolTable<string, object> symbolTable) : base()
     {
-        children = c;
+        children = new List<Statement>();
     }
 }
 

@@ -1,5 +1,6 @@
 using Xunit;
 using AST;
+using Utilities.Containers;
 
 namespace AST.Tests
 {
@@ -9,6 +10,22 @@ namespace AST.Tests
     /// </summary>
     public class ASTTests
     {
+        // ─────────────────────────────────────────────────────────────
+        // Helper
+        // ─────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Creates a BlockStmt with an empty SymbolTable and adds the provided
+        /// statements to it, keeping test code concise.
+        /// </summary>
+        private static BlockStmt CreateBlock(params Statement[] stmts)
+        {
+            var block = new BlockStmt(new SymbolTable<string, object>());
+            foreach (var stmt in stmts)
+                block.Add(stmt);
+            return block;
+        }
+
         // ─────────────────────────────────────────────────────────────
         // LiteralNodeests
         // ─────────────────────────────────────────────────────────────
@@ -462,7 +479,7 @@ namespace AST.Tests
         [Fact]
         public void BlockStmt_Unparse_EmptyBlock_ContainsBraces()
         {
-            var block = new BlockStmt(new List<Statement>());
+            var block = CreateBlock();
             string result = block.Unparse();
 
             Assert.Contains("{", result);
@@ -473,11 +490,9 @@ namespace AST.Tests
         [Fact]
         public void BlockStmt_Unparse_SingleAssignment()
         {
-            var stmts = new List<Statement>
-            {
+            var block  = CreateBlock(
                 new AssignmentStmt(new VariableNode("x"), new LiteralNode(5))
-            };
-            var block  = new BlockStmt(stmts);
+            );
             string result = block.Unparse();
 
             Assert.Contains("{",  result);
@@ -493,13 +508,11 @@ namespace AST.Tests
         [Fact]
         public void BlockStmt_Unparse_Figure2ExampleFromSpec()
         {
-            var stmts = new List<Statement>
-            {
+            var block  = CreateBlock(
                 new AssignmentStmt(new VariableNode("a"), new LiteralNode(11)),
                 new AssignmentStmt(new VariableNode("b"), new LiteralNode(4)),
                 new ReturnStmt(new IntDivNode(new VariableNode("a"), new VariableNode("b")))
-            };
-            var block  = new BlockStmt(stmts);
+            );
             string result = block.Unparse();
 
             Assert.Contains("{",      result);
@@ -517,13 +530,11 @@ namespace AST.Tests
         [Fact]
         public void BlockStmt_Unparse_StatementsAppearInOrder()
         {
-            var stmts = new List<Statement>
-            {
+            var block  = CreateBlock(
                 new AssignmentStmt(new VariableNode("first"),  new LiteralNode(1)),
                 new AssignmentStmt(new VariableNode("second"), new LiteralNode(2)),
                 new ReturnStmt(new VariableNode("second"))
-            };
-            var block  = new BlockStmt(stmts);
+            );
             string result = block.Unparse();
 
             int firstIdx  = result.IndexOf("first");
@@ -538,11 +549,9 @@ namespace AST.Tests
         [Fact]
         public void BlockStmt_Unparse_ChildrenAreIndentedInsideBlock()
         {
-            var stmts = new List<Statement>
-            {
+            var block  = CreateBlock(
                 new AssignmentStmt(new VariableNode("x"), new LiteralNode(1))
-            };
-            var block  = new BlockStmt(stmts);
+            );
             string result = block.Unparse(0);
 
             string[] lines = result.Split('\n');
@@ -560,11 +569,10 @@ namespace AST.Tests
         [Fact]
         public void BlockStmt_Unparse_NestedBlock_DoublyIndented()
         {
-            var inner = new BlockStmt(new List<Statement>
-            {
+            var inner = CreateBlock(
                 new AssignmentStmt(new VariableNode("y"), new LiteralNode(99))
-            });
-            var outer = new BlockStmt(new List<Statement> { inner });
+            );
+            var outer = CreateBlock(inner);
             string result = outer.Unparse(0);
 
             Assert.Contains("{",  result);
@@ -619,7 +627,7 @@ namespace AST.Tests
         {
             Assert.IsAssignableFrom<Statement>(new AssignmentStmt(new VariableNode("x"), new LiteralNode(1)));
             Assert.IsAssignableFrom<Statement>(new ReturnStmt(new LiteralNode(0)));
-            Assert.IsAssignableFrom<Statement>(new BlockStmt(new List<Statement>()));
+            Assert.IsAssignableFrom<Statement>(CreateBlock());
         }
 
         // ─────────────────────────────────────────────────────────────
@@ -684,7 +692,7 @@ namespace AST.Tests
         {
             Assert.NotEmpty(new AssignmentStmt(new VariableNode("x"), new LiteralNode(1)).Unparse());
             Assert.NotEmpty(new ReturnStmt(new LiteralNode(0)).Unparse());
-            Assert.NotEmpty(new BlockStmt(new List<Statement>()).Unparse());
+            Assert.NotEmpty(CreateBlock().Unparse());
         }
     }
 }

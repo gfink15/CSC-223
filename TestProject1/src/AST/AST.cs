@@ -1,9 +1,3 @@
-
-
-using Tokenizer;
-using Utilities;
-
-
 /**
  * Abstract Syntax Tree: add description
  * Claude AI was only used for writing XML and inline comments.
@@ -11,6 +5,9 @@ using Utilities;
  * @author Graham Fink, Mridul Agrawal
  * @date   2/25/2026
  */
+using Tokenizer;
+using Utilities;
+
 namespace AST;
 
 public class AbstractSyntaxTree

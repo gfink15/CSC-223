@@ -1,6 +1,7 @@
 
 
 using Tokenizer;
+using Utilities;
 
 
 /**
@@ -26,6 +27,7 @@ public class AbstractSyntaxTree
 
 public abstract class ExpressionNode
 {
+    public abstract string Unparse(int level = 0);
     public ExpressionNode? Left
     {
         get; set;
@@ -43,12 +45,16 @@ public abstract class ExpressionNode
 
 public class LiteralNode<T> : ExpressionNode
 {
-    public T? Data
+    public override string Unparse(int level = 0)
+    {
+        return Data.ToString();
+    }
+    public T Data
     {
         get;
         set;
     }
-    public LiteralNode(T? d) : base(default, default)
+    public LiteralNode(T d) : base(default, default)
     {
         Data = d;
     }
@@ -56,6 +62,10 @@ public class LiteralNode<T> : ExpressionNode
 
 public class VariableNode : ExpressionNode
 {
+    public override string Unparse(int level = 0)
+    {
+        return Name;
+    }
     public string Name
     {
         get;
@@ -78,6 +88,10 @@ public abstract class Operator : ExpressionNode
 
 public abstract class BinaryOperator : Operator
 {
+    public override string Unparse(int level = 0)
+    {
+        return "(" + Left.Unparse + ToString() + Right.ToString() + ")";
+    }
     public BinaryOperator(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
         
@@ -168,14 +182,29 @@ public class ExponentiationNode : BinaryOperator
     }
 }
 
-public abstract class Statement {}
+public abstract class Statement
+{
+    public abstract string Unparse(int level = 0);
+}
 
 public class BlockStmt : Statement
 {
-    public List<Statement> Children = new List<Statement>();
+
+    public override string Unparse(int level = 0)
+    {
+        string builder = GeneralUtils.GetIndentation(level) + "{";
+        foreach (Statement s in children)
+        {
+            builder += "\n" + s.Unparse(level + 1);
+        }
+        builder += "\n" + GeneralUtils.GetIndentation(level) + "}";
+        return builder;
+    }
+
+    public List<Statement> children = new List<Statement>();
     public BlockStmt(Statement s) : base()
     {
-        Children.Add(s);
+        children.Add(s);
     }
 }
 
@@ -185,6 +214,14 @@ public class AssignmentStmt : Statement
     {
         return TokenConstants.ASSIGNMENT;
     }
+
+    public override string Unparse(int level = 0)
+    {
+        string builder = GeneralUtils.GetIndentation(level);
+        builder += Right.Unparse(0) + ToString() + Left.Unparse();
+        return builder;
+    }
+
     public ExpressionNode Left
     {
         get; set;
@@ -206,6 +243,12 @@ public class ReturnStmt : Statement
     {
         return TokenConstants.RETURN;
     }
+
+    public override string Unparse(int level = 0)
+    {
+        return GeneralUtils.GetIndentation(level) + ToString() + Child.Unparse(0);
+    }
+
     public ExpressionNode Child
     {
         get; set;

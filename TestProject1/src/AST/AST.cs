@@ -204,6 +204,11 @@ public class BlockStmt : Statement
     {
         children = new List<Statement>();
     }
+
+    public void Add(Statement s)
+    {
+        children.Add(s);
+    }
 }
 
 public class AssignmentStmt : Statement

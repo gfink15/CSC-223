@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Utilities.Containers;
 
 namespace AST
 {
@@ -10,62 +11,62 @@ namespace AST
     public class DefaultBuilder
     {
         // Override all creation methods to return null
-        public PlusNode CreatePlusNode(ExpressionNode left, ExpressionNode right)
+        public virtual PlusNode CreatePlusNode(ExpressionNode left, ExpressionNode right)
         {
             return null;
         }
 
-        public MinusNode CreateMinusNode(ExpressionNode left, ExpressionNode right)
+        public virtual MinusNode CreateMinusNode(ExpressionNode left, ExpressionNode right)
         {
             return null;
         }
 
-        public TimesNode CreateTimesNode(ExpressionNode left, ExpressionNode right)
+        public virtual TimesNode CreateTimesNode(ExpressionNode left, ExpressionNode right)
         {
             return null;
         }
 
-        public FloatDivNode CreateFloatDivNode(ExpressionNode left, ExpressionNode right)
+        public virtual FloatDivNode CreateFloatDivNode(ExpressionNode left, ExpressionNode right)
         {
             return null;
         }
 
-        public IntDivNode CreateIntDivNode(ExpressionNode left, ExpressionNode right)
+        public virtual IntDivNode CreateIntDivNode(ExpressionNode left, ExpressionNode right)
         {
             return null;
         }
 
-        public ModulusNode CreateModulusNode(ExpressionNode left, ExpressionNode right)
+        public virtual ModulusNode CreateModulusNode(ExpressionNode left, ExpressionNode right)
         {
             return null;
         }
 
-        public ExponentiationNode CreateExponentiationNode(ExpressionNode left, ExpressionNode right)
+        public virtual ExponentiationNode CreateExponentiationNode(ExpressionNode left, ExpressionNode right)
         {
             return null;
         }
 
-        public LiteralNode CreateLiteralNode(object value)
+        public virtual LiteralNode CreateLiteralNode(object value)
         {
             return null;
         }
 
-        public VariableNode CreateVariableNode(string name)
+        public virtual VariableNode CreateVariableNode(string name)
         {
             return null;
         }
 
-        public AssignmentStmt CreateAssignmentStmt(VariableNode variable, ExpressionNode expression)
+        public virtual AssignmentStmt CreateAssignmentStmt(VariableNode variable, ExpressionNode expression)
         {
             return null;
         }
 
-        public ReturnStmt CreateReturnStmt(ExpressionNode expression)
+        public virtual ReturnStmt CreateReturnStmt(ExpressionNode expression)
         {
             return null;
         }
 
-        public BlockStmt CreateBlockStmt(SymbolTable<string, object> symbolTable)
+        public virtual BlockStmt CreateBlockStmt(SymbolTable<string, object> symbolTable)
         {
             return null;
         }

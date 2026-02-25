@@ -46,9 +46,9 @@ namespace AST
             return new ExponentiationNode(left, right);
         }
 
-        public override LiteralNode<T> CreateLiteralNode<T>(T value)
+        public override LiteralNode CreateLiteralNode(object value)
         {
-            return new LiteralNode<T>(value);
+            return new LiteralNode(value);
         }
 
         public override VariableNode CreateVariableNode(string name)

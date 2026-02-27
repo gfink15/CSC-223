@@ -31,7 +31,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreatePlusNode(Lit(1), Lit(2));
-            Assert.Null(result);
+            Assert.IsType<PlusNode>(result);
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreateMinusNode(Lit(5), Lit(3));
-            Assert.Null(result);
+            Assert.IsType<MinusNode>(result);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreateTimesNode(Lit(2), Lit(4));
-            Assert.Null(result);
+            Assert.IsType<TimesNode>(result);
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreateFloatDivNode(Lit(10), Lit(3));
-            Assert.Null(result);
+            Assert.IsType<FloatDivNode>(result);
         }
 
         [Fact]
@@ -63,7 +63,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreateIntDivNode(Lit(10), Lit(3));
-            Assert.Null(result);
+            Assert.IsType<IntDivNode>(result);
         }
 
         [Fact]
@@ -71,7 +71,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreateModulusNode(Lit(10), Lit(3));
-            Assert.Null(result);
+            Assert.IsType<ModulusNode>(result);
         }
 
         [Fact]
@@ -79,7 +79,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreateExponentiationNode(Lit(2), Lit(3));
-            Assert.Null(result);
+            Assert.IsType<ExponentiationNode>(result);
         }
 
         [Theory]
@@ -92,7 +92,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreateLiteralNode(value);
-            Assert.Null(result);
+            Assert.IsType<LiteralNode>(result);
         }
 
         [Theory]
@@ -103,7 +103,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreateVariableNode(name);
-            Assert.Null(result);
+            Assert.IsType<VariableNode>(result);
         }
 
         [Fact]
@@ -111,7 +111,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreateAssignmentStmt(Var("x"), Lit(5));
-            Assert.Null(result);
+            Assert.IsType<AssignmentStmt>(result);
         }
 
         [Fact]
@@ -119,7 +119,7 @@ namespace AST.Builders.Tests
         {
             var builder = new DefaultBuilder();
             var result = builder.CreateReturnStmt(Lit(10));
-            Assert.Null(result);
+            Assert.IsType<ReturnStmt>(result);
         }
 
         [Fact]
@@ -128,7 +128,7 @@ namespace AST.Builders.Tests
             var builder = new DefaultBuilder();
             var st = new SymbolTable<string, object>(null);
             var result = builder.CreateBlockStmt(st);
-            Assert.Null(result);
+            Assert.IsType<BlockStmt>(result);
         }
 
         [Theory]
@@ -141,13 +141,13 @@ namespace AST.Builders.Tests
             var l = Lit(left);
             var r = Lit(right);
 
-            Assert.Null(builder.CreatePlusNode(l, r));
-            Assert.Null(builder.CreateMinusNode(l, r));
-            Assert.Null(builder.CreateTimesNode(l, r));
-            Assert.Null(builder.CreateFloatDivNode(l, r));
-            Assert.Null(builder.CreateIntDivNode(l, r));
-            Assert.Null(builder.CreateModulusNode(l, r));
-            Assert.Null(builder.CreateExponentiationNode(l, r));
+            Assert.IsType<PlusNode>(builder.CreatePlusNode(l, r));
+            Assert.IsType<MinusNode>(builder.CreateMinusNode(l, r));
+            Assert.IsType<TimesNode>(builder.CreateTimesNode(l, r));
+            Assert.IsType<FloatDivNode>(builder.CreateFloatDivNode(l, r));
+            Assert.IsType<IntDivNode>(builder.CreateIntDivNode(l, r));
+            Assert.IsType<ModulusNode>(builder.CreateModulusNode(l, r));
+            Assert.IsType<ExponentiationNode>(builder.CreateExponentiationNode(l, r));
         }
 
         #endregion

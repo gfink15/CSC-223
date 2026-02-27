@@ -226,7 +226,7 @@ public class AssignmentStmt : Statement
     public override string Unparse(int level = 0)
     {
         string builder = GeneralUtils.GetIndentation(level);
-        builder += Right.Unparse(0) + ToString() + Left.Unparse();
+        builder += Left.Unparse(0) + ToString() + Right.Unparse();
         return builder;
     }
 

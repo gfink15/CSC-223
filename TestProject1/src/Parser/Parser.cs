@@ -29,7 +29,9 @@ class Parser
     }
     public AST.ExpressionNode HandleSingleToken(Tokenizer.Token t)
     {
-        throw new NotImplementedException();
+        if (t.Type == TokenType.VARIABLE) return ParseVariableNode(t.Value);
+        else if (t.Type == TokenType.DOUBLE || t.Type == TokenType.INTEGER) return new LiteralNode(t.Value);
+        throw new ParseException("Token type is not a variable or a number");
     }
     public AST.ExpressionNode CreateBinaryOperatorNode(string op, AST.ExpressionNode l, AST.ExpressionNode r)
     {

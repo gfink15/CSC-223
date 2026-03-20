@@ -16,24 +16,29 @@ using Utilities.Containers;
  */
 namespace Parser;
 
-class Parser
+public static class Parser
 {
     #region Expressions
-    public AST.ExpressionNode ParseExpression(List<Token> l)
+    public static AST.ExpressionNode ParseExpression(List<Token> l)
     {
+        if (l[0].Type != TokenType.LEFT_PAREN) throw new ParseException("Expression does not begin with parentheses");
+        l.RemoveAt(0);
+        var parsed = ParseExpressionContent(l);
+        if (l[0].Type != TokenType.RIGHT_PAREN) throw new ParseException("Expression does not begin with parentheses");
+        return parsed;
+    }
+    public static AST.ExpressionNode ParseExpressionContent(List<Tokenizer.Token> l)
+    {
+        if (l[0].Type == TokenType.LEFT_PAREN) return ParseExpression(l);
         throw new NotImplementedException();
     }
-    public AST.ExpressionNode ParseExpressionContent(List<Tokenizer.Token> l)
-    {
-        throw new NotImplementedException();
-    }
-    public AST.ExpressionNode HandleSingleToken(Tokenizer.Token t)
+    public static AST.ExpressionNode HandleSingleToken(Tokenizer.Token t)
     {
         if (t.Type == TokenType.VARIABLE) return ParseVariableNode(t.Value);
         else if (t.Type == TokenType.DOUBLE || t.Type == TokenType.INTEGER) return new LiteralNode(t.Value);
         throw new ParseException("Token type is not a variable or a number");
     }
-    public AST.ExpressionNode CreateBinaryOperatorNode(string op, AST.ExpressionNode l, AST.ExpressionNode r)
+    public static AST.ExpressionNode CreateBinaryOperatorNode(string op, AST.ExpressionNode l, AST.ExpressionNode r)
     {
         if (!GeneralUtils.IsValidOperator(op)) throw new ParseException("Invalid Operator");
         switch (op)
@@ -55,7 +60,7 @@ class Parser
         }
         throw new ParseException("Invalid operator after check");
     }
-    public AST.VariableNode ParseVariableNode(string s)
+    public static AST.VariableNode ParseVariableNode(string s)
     {
         if (!GeneralUtils.IsValidVariable(s)) throw new ParseException("Invalid Variable Name");
         return new AST.VariableNode(s);
@@ -63,32 +68,32 @@ class Parser
     #endregion
 
     #region Individual Statements
-    public AST.AssignmentStmt ParseAssignemntStmt(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
+    public static AST.AssignmentStmt ParseAssignemntStmt(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
     {
         throw new NotImplementedException();
     }
-    public AST.ReturnStmt ParseReturnStmt(List<Tokenizer.Token> l)
+    public static AST.ReturnStmt ParseReturnStmt(List<Tokenizer.Token> l)
     {
         throw new NotImplementedException();
     }
-    public AST.Statement ParseStatement(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
+    public static AST.Statement ParseStatement(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
     {
         throw new NotImplementedException();
     }
     #endregion
 
     #region Blocks
-    public void ParseStmtList(List<string> lines, BlockStmt b)
+    public static void ParseStmtList(List<string> lines, BlockStmt b)
     {
         throw new NotImplementedException();
     }
-    public AST.BlockStmt ParseBlockStmt(List<string> lines, SymbolTable<Object, Object> s)
+    public static AST.BlockStmt ParseBlockStmt(List<string> lines, SymbolTable<Object, Object> s)
     {
         throw new NotImplementedException();
     }
     #endregion
 
-    public AST.AbstractSyntaxTree Parse(string s)
+    public static AST.BlockStmt Parse(string s)
     {
         throw new NotImplementedException();
     }

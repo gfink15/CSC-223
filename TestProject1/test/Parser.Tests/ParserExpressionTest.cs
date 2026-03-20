@@ -11,12 +11,12 @@ namespace Parser.Tests
     public class ParseExpressionTests
     {
         // Helper method to create a token list for testing ParseExpression
-        private List<Token> CreateTokens(string[] tokenValues, TokenType[] tokenTypes)
+        private List<Token> CreateTokens(string[] tokenDatas, TokenType[] tokenTypes)
         {
             var tokens = new List<Token>();
-            for (int i = 0; i < tokenValues.Length; i++)
+            for (int i = 0; i < tokenDatas.Length; i++)
             {
-                tokens.Add(new Token(tokenValues[i], tokenTypes[i]));
+                tokens.Add(new Token(tokenDatas[i], tokenTypes[i]));
             }
             return tokens;
         }
@@ -57,8 +57,8 @@ namespace Parser.Tests
             var leftLiteral = (LiteralNode)leftExpr;
             var rightLiteral = (LiteralNode)rightExpr;
             
-            Assert.Equal(5, leftLiteral.Value);
-            Assert.Equal(3, rightLiteral.Value);
+            Assert.Equal(5, leftLiteral.Data);
+            Assert.Equal(3, rightLiteral.Data);
         }
 
         [Fact]
@@ -87,8 +87,8 @@ namespace Parser.Tests
             var leftLiteral = (LiteralNode)leftExpr;
             var rightLiteral = (LiteralNode)rightExpr;
             
-            Assert.Equal(10, leftLiteral.Value);
-            Assert.Equal(7, rightLiteral.Value);
+            Assert.Equal(10, leftLiteral.Data);
+            Assert.Equal(7, rightLiteral.Data);
         }
 
         [Fact]
@@ -117,12 +117,12 @@ namespace Parser.Tests
             var leftLiteral = (LiteralNode)leftExpr;
             var rightLiteral = (LiteralNode)rightExpr;
             
-            Assert.Equal(4, leftLiteral.Value);
-            Assert.Equal(6, rightLiteral.Value);
+            Assert.Equal(4, leftLiteral.Data);
+            Assert.Equal(6, rightLiteral.Data);
         }
 
         [Fact]
-        public void ParseExpression_SimpleDivision_ReturnsFloatDivNode()
+        public void ParseExpression_SimpleDivision_ReturnsDOUBLEDivNode()
         {
             // Arrange
             var tokens = CreateTokens(
@@ -147,8 +147,8 @@ namespace Parser.Tests
             var leftLiteral = (LiteralNode)leftExpr;
             var rightLiteral = (LiteralNode)rightExpr;
             
-            Assert.Equal(8, leftLiteral.Value);
-            Assert.Equal(2, rightLiteral.Value);
+            Assert.Equal(8, leftLiteral.Data);
+            Assert.Equal(2, rightLiteral.Data);
         }
 
         [Fact]
@@ -177,8 +177,8 @@ namespace Parser.Tests
             var leftLiteral = (LiteralNode)leftExpr;
             var rightLiteral = (LiteralNode)rightExpr;
             
-            Assert.Equal(9, leftLiteral.Value);
-            Assert.Equal(2, rightLiteral.Value);
+            Assert.Equal(9, leftLiteral.Data);
+            Assert.Equal(2, rightLiteral.Data);
         }
 
         [Fact]
@@ -207,8 +207,8 @@ namespace Parser.Tests
             var leftLiteral = (LiteralNode)leftExpr;
             var rightLiteral = (LiteralNode)rightExpr;
             
-            Assert.Equal(10, leftLiteral.Value);
-            Assert.Equal(3, rightLiteral.Value);
+            Assert.Equal(10, leftLiteral.Data);
+            Assert.Equal(3, rightLiteral.Data);
         }
 
         [Fact]
@@ -237,8 +237,8 @@ namespace Parser.Tests
             var leftLiteral = (LiteralNode)leftExpr;
             var rightLiteral = (LiteralNode)rightExpr;
             
-            Assert.Equal(2, leftLiteral.Value);
-            Assert.Equal(3, rightLiteral.Value);
+            Assert.Equal(2, leftLiteral.Data);
+            Assert.Equal(3, rightLiteral.Data);
         }
 
         [Fact]
@@ -272,12 +272,12 @@ namespace Parser.Tests
         }
 
         [Fact]
-        public void ParseExpression_WithFloatLiterals_ReturnsCorrectNode()
+        public void ParseExpression_WithDOUBLELiterals_ReturnsCorrectNode()
         {
             // Arrange
             var tokens = CreateTokens(
                 new[] { "(", "3.14", "*", "2.5", ")" },
-                new[] { TokenType.LEFT_PAREN, TokenType.FLOAT, TokenType.OPERATOR, TokenType.FLOAT, TokenType.RIGHT_PAREN }
+                new[] { TokenType.LEFT_PAREN, TokenType.DOUBLE, TokenType.OPERATOR, TokenType.DOUBLE, TokenType.RIGHT_PAREN }
             );
 
             // Act
@@ -297,8 +297,8 @@ namespace Parser.Tests
             var leftLiteral = (LiteralNode)leftExpr;
             var rightLiteral = (LiteralNode)rightExpr;
             
-            Assert.Equal(3.14, leftLiteral.Value);
-            Assert.Equal(2.5, rightLiteral.Value);
+            Assert.Equal(3.14, leftLiteral.Data);
+            Assert.Equal(2.5, rightLiteral.Data);
         }
 
         [Fact]
@@ -342,9 +342,9 @@ namespace Parser.Tests
             var plusLeftLiteral = (LiteralNode)plusLeftExpr;
             var plusRightLiteral = (LiteralNode)plusRightExpr;
             
-            Assert.Equal(5, plusLeftLiteral.Value);
-            Assert.Equal(3, plusRightLiteral.Value);
-            Assert.Equal(2, rightLiteral.Value);
+            Assert.Equal(5, plusLeftLiteral.Data);
+            Assert.Equal(3, plusRightLiteral.Data);
+            Assert.Equal(2, rightLiteral.Data);
         }
 
         [Fact]
@@ -379,7 +379,7 @@ namespace Parser.Tests
             var leftLiteral = (LiteralNode)leftExpr;
             var plusNode = (PlusNode)rightExpr;
             
-            Assert.Equal(2, leftLiteral.Value);
+            Assert.Equal(2, leftLiteral.Data);
             
             var plusLeftExpr = plusNode.Left;
             var plusRightExpr = plusNode.Right;
@@ -390,8 +390,8 @@ namespace Parser.Tests
             var plusLeftLiteral = (LiteralNode)plusLeftExpr;
             var plusRightLiteral = (LiteralNode)plusRightExpr;
             
-            Assert.Equal(5, plusLeftLiteral.Value);
-            Assert.Equal(3, plusRightLiteral.Value);
+            Assert.Equal(5, plusLeftLiteral.Data);
+            Assert.Equal(3, plusRightLiteral.Data);
         }
 
         [Fact]
@@ -441,10 +441,10 @@ namespace Parser.Tests
             var minusLeftLiteral = (LiteralNode)minusLeftExpr;
             var minusRightLiteral = (LiteralNode)minusRightExpr;
             
-            Assert.Equal(2, plusLeftLiteral.Value);
-            Assert.Equal(3, plusRightLiteral.Value);
-            Assert.Equal(7, minusLeftLiteral.Value);
-            Assert.Equal(4, minusRightLiteral.Value);
+            Assert.Equal(2, plusLeftLiteral.Data);
+            Assert.Equal(3, plusRightLiteral.Data);
+            Assert.Equal(7, minusLeftLiteral.Data);
+            Assert.Equal(4, minusRightLiteral.Data);
         }
 
         [Fact]
@@ -457,7 +457,7 @@ namespace Parser.Tests
                     TokenType.LEFT_PAREN, 
                     TokenType.VARIABLE, 
                     TokenType.OPERATOR, 
-                    TokenType.LEFT_PAREN, TokenType.FLOAT, TokenType.OPERATOR, TokenType.VARIABLE, TokenType.RIGHT_PAREN, 
+                    TokenType.LEFT_PAREN, TokenType.DOUBLE, TokenType.OPERATOR, TokenType.VARIABLE, TokenType.RIGHT_PAREN, 
                     TokenType.RIGHT_PAREN 
                 }
             );
@@ -490,7 +490,7 @@ namespace Parser.Tests
             var plusLeftLiteral = (LiteralNode)plusLeftExpr;
             var plusRightVar = (VariableNode)plusRightExpr;
             
-            Assert.Equal(5.5, plusLeftLiteral.Value);
+            Assert.Equal(5.5, plusLeftLiteral.Data);
             Assert.Equal("y", plusRightVar.Name);
         }
 
@@ -616,7 +616,7 @@ namespace Parser.Tests
                     TokenType.LEFT_PAREN, 
                     TokenType.VARIABLE, 
                     TokenType.OPERATOR, 
-                    TokenType.LEFT_PAREN, TokenType.FLOAT, TokenType.OPERATOR, TokenType.VARIABLE, TokenType.RIGHT_PAREN
+                    TokenType.LEFT_PAREN, TokenType.DOUBLE, TokenType.OPERATOR, TokenType.VARIABLE, TokenType.RIGHT_PAREN
                 }
             );
 
@@ -637,7 +637,7 @@ namespace Parser.Tests
                     TokenType.LEFT_PAREN, 
                     TokenType.VARIABLE, 
                     TokenType.OPERATOR, 
-                    TokenType.FLOAT, TokenType.OPERATOR, TokenType.VARIABLE, TokenType.RIGHT_PAREN,
+                    TokenType.DOUBLE, TokenType.OPERATOR, TokenType.VARIABLE, TokenType.RIGHT_PAREN,
                     TokenType.RIGHT_PAREN
                 }
             );
@@ -699,10 +699,10 @@ namespace Parser.Tests
             var plusLeftLiteral = (LiteralNode)plusLeftExpr;
             var plusRightLiteral = (LiteralNode)plusRightExpr;
             
-            Assert.Equal(2, plusLeftLiteral.Value);
-            Assert.Equal(3, plusRightLiteral.Value);
-            Assert.Equal(4, timesRightLiteral.Value);
-            Assert.Equal(5, rightLiteral.Value);
+            Assert.Equal(2, plusLeftLiteral.Data);
+            Assert.Equal(3, plusRightLiteral.Data);
+            Assert.Equal(4, timesRightLiteral.Data);
+            Assert.Equal(5, rightLiteral.Data);
         }
 
         [Fact]
@@ -715,7 +715,7 @@ namespace Parser.Tests
                 new[] { 
                     TokenType.LEFT_PAREN, 
                     TokenType.INTEGER, TokenType.OPERATOR, TokenType.INTEGER, 
-                    TokenType.RIGHT_BRACE 
+                    TokenType.RIGHT_CURLY
                 }
             );
 
@@ -725,7 +725,7 @@ namespace Parser.Tests
             Assert.Contains("must end with a )", exception.InnerException.Message, StringComparison.OrdinalIgnoreCase);
         }
 
-        #region Single tokenValues
+        #region Single tokenDatas
 
         [Fact]
         public void ParseExpression_SingleIntegerLiteral_ReturnsLiteralNode()
@@ -744,16 +744,16 @@ namespace Parser.Tests
             Assert.IsType<LiteralNode>(result);
             
             var literalNode = (LiteralNode)result;
-            Assert.Equal(42, literalNode.Value);
+            Assert.Equal(42, literalNode.Data);
         }
         
         [Fact]
-        public void ParseExpression_SingleFloatLiteral_ReturnsLiteralNode()
+        public void ParseExpression_SingleDOUBLELiteral_ReturnsLiteralNode()
         {
             // Arrange - create expression: (3.14)
             var tokens = CreateTokens(
                 new[] { "(", "3.14", ")" },
-                new[] { TokenType.LEFT_PAREN, TokenType.FLOAT, TokenType.RIGHT_PAREN }
+                new[] { TokenType.LEFT_PAREN, TokenType.DOUBLE, TokenType.RIGHT_PAREN }
             );
 
             // Act
@@ -764,7 +764,7 @@ namespace Parser.Tests
             Assert.IsType<LiteralNode>(result);
             
             var literalNode = (LiteralNode)result;
-            Assert.Equal(3.14, literalNode.Value);
+            Assert.Equal(3.14, literalNode.Data);
         }
         
         [Fact]
@@ -788,7 +788,7 @@ namespace Parser.Tests
         }
         
         [Fact]
-        public void ParseExpression_NestedSingleValue_ReturnsCorrectNode()
+        public void ParseExpression_NestedSingleData_ReturnsCorrectNode()
         {
             // Arrange - create expression: ((42))
             var tokens = CreateTokens(
@@ -804,11 +804,11 @@ namespace Parser.Tests
             Assert.IsType<LiteralNode>(result);
             
             var literalNode = (LiteralNode)result;
-            Assert.Equal(42, literalNode.Value);
+            Assert.Equal(42, literalNode.Data);
         }
         
         [Fact]
-        public void ParseExpression_DeeplyNestedSingleValue_ReturnsCorrectNode()
+        public void ParseExpression_DeeplyNestedSingleData_ReturnsCorrectNode()
         {
             // Arrange - create expression: ((((x))))
             var tokens = CreateTokens(
@@ -847,7 +847,7 @@ namespace Parser.Tests
         }
         
         [Fact]
-        public void ParseExpression_ZeroValue_ReturnsLiteralNode()
+        public void ParseExpression_ZeroData_ReturnsLiteralNode()
         {
             // Arrange - create expression: (0)
             var tokens = CreateTokens(
@@ -863,14 +863,14 @@ namespace Parser.Tests
             Assert.IsType<LiteralNode>(result);
             
             var literalNode = (LiteralNode)result;
-            Assert.Equal(0, literalNode.Value);
+            Assert.Equal(0, literalNode.Data);
         }
         
         [Fact]
-        public void ParseExpression_NegativeValue_ReturnsCorrectTree()
+        public void ParseExpression_NegativeData_ReturnsCorrectTree()
         {
             // Arrange - create expression: (0 - 5)
-            // Note: This is how negative values would be expressed in this language
+            // Note: This is how negative Datas would be expressed in this language
             var tokens = CreateTokens(
                 new[] { "(", "0", "-", "5", ")" },
                 new[] { TokenType.LEFT_PAREN, TokenType.INTEGER, TokenType.OPERATOR, TokenType.INTEGER, TokenType.RIGHT_PAREN }
@@ -887,7 +887,7 @@ namespace Parser.Tests
         }
         
         [Fact]
-        public void ParseExpression_SingleValueFollowedByJunk_ThrowsParseException()
+        public void ParseExpression_SingleDataFollowedByJunk_ThrowsParseException()
         {
             // Arrange - create expression: (42 junk)
             var tokens = CreateTokens(
@@ -902,7 +902,7 @@ namespace Parser.Tests
         }
         
         [Fact]
-        public void ParseExpression_MissingValueBetweenParens_ThrowsParseException()
+        public void ParseExpression_MissingDataBetweenParens_ThrowsParseException()
         {
             // Arrange - create expression: (( ))
             var tokens = CreateTokens(

@@ -4,6 +4,7 @@ using Xunit;
 using AST;
 using Tokenizer;
 using System.Reflection;
+using Utilities.Containers;
 
 namespace Parser.Tests
 {
@@ -60,7 +61,7 @@ namespace Parser.Tests
             Assert.IsType<LiteralNode>(result.Expression);
             
             var literalNode = (LiteralNode)result.Expression;
-            Assert.Equal(42, literalNode.Value);
+            Assert.Equal(42, literalNode.Data);
         }
         
         [Fact]
@@ -69,7 +70,7 @@ namespace Parser.Tests
             // Arrange - Note: All expressions must be surrounded by parentheses
             var tokens = CreateTokens(
                 new[] { "return", "(", "3.14", ")" },
-                new[] { TokenType.RETURN, TokenType.LEFT_PAREN, TokenType.FLOAT, TokenType.RIGHT_PAREN }
+                new[] { TokenType.RETURN, TokenType.LEFT_PAREN, TokenType.DOUBLE, TokenType.RIGHT_PAREN }
             );
 
             // Act
@@ -81,7 +82,7 @@ namespace Parser.Tests
             Assert.IsType<LiteralNode>(result.Expression);
             
             var literalNode = (LiteralNode)result.Expression;
-            Assert.Equal(3.14, literalNode.Value);
+            Assert.Equal(3.14, literalNode.Data);
         }
         
         [Fact]
@@ -218,7 +219,7 @@ namespace Parser.Tests
             var literalNode = (LiteralNode)result.Expression;
             
             Assert.Equal("x", variableNode.Name);
-            Assert.Equal(42, literalNode.Value);
+            Assert.Equal(42, literalNode.Data);
             
             // Verify that variable was added to symbol table
             Assert.True(symbolTable.ContainsKey("x"));

@@ -797,8 +797,8 @@ namespace AST.Builders.Tests
             var expression = Lit(value);
             var result = builder.CreateAssignmentStmt(variable, expression);
 
-            Assert.Same(expression, result.Right);
-            Assert.Same(variable, result.Left);
+            Assert.Same(expression, result.Expression);
+            Assert.Same(variable, result.Variable);
         }
 
         [Theory]
@@ -811,7 +811,7 @@ namespace AST.Builders.Tests
             var expression = Lit(value);
             var result = builder.CreateReturnStmt(expression);
 
-            Assert.Same(expression, result.Child);
+            Assert.Same(expression, result.Expression);
         }
 
         [Fact]
@@ -822,7 +822,7 @@ namespace AST.Builders.Tests
             var result = builder.CreateBlockStmt(st);
 
             Assert.Same(st, result.SymbolTable);
-            Assert.Empty(result.children);
+            Assert.Empty(result.Statements);
         }
 
         [Fact]
@@ -835,8 +835,8 @@ namespace AST.Builders.Tests
             var ret = builder.CreateReturnStmt(Lit(42));
             block.Add(ret);
 
-            Assert.Single(block.children);
-            Assert.Same(ret, block.children[0]);
+            Assert.Single(block.Statements);
+            Assert.Same(ret, block.Statements[0]);
         }
 
         #endregion

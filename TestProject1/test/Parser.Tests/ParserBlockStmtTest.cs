@@ -4,6 +4,8 @@ using Xunit;
 using AST;
 using Tokenizer;
 using System.Reflection;
+using Parser;
+using Utilities.Containers;
 
 namespace Parser.Tests
 {

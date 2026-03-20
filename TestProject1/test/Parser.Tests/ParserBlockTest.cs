@@ -5,6 +5,7 @@ using AST;
 using Tokenizer;
 using System.Reflection;
 using System.Linq;
+using Utilities.Containers;
 
 namespace Parser.Tests
 {
@@ -68,7 +69,7 @@ namespace Parser.Tests
             var assignStmt = (AssignmentStmt)blockStmt.Statements.First();
             Assert.Equal("x", assignStmt.Variable.Name);
             Assert.IsType<LiteralNode>(assignStmt.Expression);
-            Assert.Equal(42, ((LiteralNode)assignStmt.Expression).Value);
+            Assert.Equal(42, ((LiteralNode)assignStmt.Expression).Data);
             
             Assert.Single(lines); // '}' should still be in the lines
         }
@@ -513,7 +514,7 @@ namespace Parser.Tests
             var assignStmt = new AssignmentStmt(new VariableNode("x"), new LiteralNode(42));
             
             // Act
-            blockStmt.AddStatement(assignStmt);
+            blockStmt.Add(assignStmt);
             InvokeParseStmtList(lines, blockStmt);
             
             // Assert

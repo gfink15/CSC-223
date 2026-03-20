@@ -4,6 +4,8 @@ using Xunit;
 using AST;
 using Tokenizer;
 using System.Reflection;
+using Parser;
+using Utilities.Containers;
 
 namespace Parser.Tests
 {
@@ -63,7 +65,7 @@ namespace Parser.Tests
             var assign = (AssignmentStmt)result.Statements[0];
             Assert.Equal("x", assign.Variable.Name);
             Assert.IsType<LiteralNode>(assign.Expression);
-            Assert.Equal(42, ((LiteralNode)assign.Expression).Value);
+            Assert.Equal(42, ((LiteralNode)assign.Expression).Data);
             
             Assert.True(result.SymbolTable.ContainsKey("x"));
             
@@ -88,7 +90,7 @@ namespace Parser.Tests
             
             var returnStmt = (ReturnStmt)result.Statements[0];
             Assert.IsType<LiteralNode>(returnStmt.Expression);
-            Assert.Equal(42, ((LiteralNode)returnStmt.Expression).Value);
+            Assert.Equal(42, ((LiteralNode)returnStmt.Expression).Data);
             
             // Verify unparsing
             var unparsed = result.Unparse();
@@ -132,7 +134,7 @@ namespace Parser.Tests
             var rightLiteral = (LiteralNode)timesNode.Right;
             
             Assert.Equal("c", leftVar.Name);
-            Assert.Equal(2, rightLiteral.Value);
+            Assert.Equal(2, rightLiteral.Data);
             
             // Check the return statement
             var returnStmt = (ReturnStmt)result.Statements[4];

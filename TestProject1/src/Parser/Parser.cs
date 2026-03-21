@@ -1,5 +1,6 @@
 
 
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using AST;
 using Tokenizer;
@@ -29,7 +30,32 @@ public static class Parser
     }
     public static AST.ExpressionNode ParseExpressionContent(List<Tokenizer.Token> l)
     {
-        if (l[0].Type == TokenType.LEFT_PAREN) return ParseExpression(l);
+        List<ExpressionNode> expressions = new List<ExpressionNode>();
+        try {
+            while (l.Count > 1)
+            {
+                if (l[0].Type == TokenType.LEFT_PAREN)
+                {
+                    expressions.Add(ParseExpression(l));
+                }
+                if (l[0].Type == TokenType.OPERATOR)
+                {
+                    string s = l[0].Value;
+                    l.RemoveAt(0);
+                    expressions.Add(CreateBinaryOperatorNode(s, expressions[0], ParseExpressionContent(l)));
+                }
+                else
+                {
+                    expressions.Add(HandleSingleToken(l[0]));
+                    l.RemoveAt(0);
+                }
+            }
+        } catch {
+           throw new ParseException("Error while parsing expression"); 
+        }
+        
+        //if (l[2].Type == TokenType.LEFT_PAREN) return CreateBinaryOperatorNode(l[1].Value, l[0], ParseExpression());
+        
         throw new NotImplementedException();
     }
     public static AST.ExpressionNode HandleSingleToken(Tokenizer.Token t)

@@ -1,5 +1,6 @@
 
 
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using AST;
 using Tokenizer;
@@ -19,26 +20,69 @@ namespace Parser;
 public static class Parser
 {
     #region Expressions
-    public static AST.ExpressionNode ParseExpression(List<Token> l)
+    private static AST.ExpressionNode ParseExpression(List<Token> l)
     {
-        if (l[0].Type != TokenType.LEFT_PAREN) throw new ParseException("Expression does not begin with parentheses");
+        if (l.Count < 1) throw new ParseException("missing expression");
+        if (l[0].Type != TokenType.LEFT_PAREN) throw new ParseException("Expression must begin with a (");
         l.RemoveAt(0);
         var parsed = ParseExpressionContent(l);
-        if (l[0].Type != TokenType.RIGHT_PAREN) throw new ParseException("Expression does not begin with parentheses");
+        if (l[0].Type != TokenType.RIGHT_PAREN) throw new ParseException("Expression must end with a )");
+        l.RemoveAt(0);
         return parsed;
     }
-    public static AST.ExpressionNode ParseExpressionContent(List<Tokenizer.Token> l)
+    private static AST.ExpressionNode ParseExpressionContent(List<Tokenizer.Token> l)
     {
-        if (l[0].Type == TokenType.LEFT_PAREN) return ParseExpression(l);
-        throw new NotImplementedException();
+        List<ExpressionNode> expressions = new List<ExpressionNode>();
+        int counter = 0;
+        string op = "";
+        
+        while (l.Count > 0)
+        {
+            if (l[0].Type == TokenType.LEFT_PAREN)
+            {
+                expressions.Add(ParseExpression(l));
+                counter++;
+            }
+            else if (l[0].Type == TokenType.OPERATOR)
+            {
+                op = l[0].Value;
+                l.RemoveAt(0);
+                //expressions.Add(CreateBinaryOperatorNode(s, expressions[0], ParseExpressionContent(l)));
+                counter++;
+            }
+            else if (l[0].Type == TokenType.RIGHT_PAREN)
+            {
+                if (counter == 3 && expressions.Count == 2) return CreateBinaryOperatorNode(op, expressions[0], expressions[1]);
+                else if (counter == 1 && expressions.Count == 1) return expressions[0];
+                //Debug
+                string s = "";
+                foreach(ExpressionNode e in expressions)
+                {
+                    s += e.Unparse() + " ";
+                }
+                s += "Operator: " + op;
+                throw new ParseException("Counter mismatch or incorrect; Counter: "+counter+", Count: "+expressions.Count+" Data dump: "+s);
+            }
+            else
+            {
+                expressions.Add(HandleSingleToken(l[0]));
+                l.RemoveAt(0);
+                counter++;
+            }
+        }
+        
+        throw new ParseException("Missing )");
     }
-    public static AST.ExpressionNode HandleSingleToken(Tokenizer.Token t)
+    private static AST.ExpressionNode HandleSingleToken(Tokenizer.Token t)
     {
+        if (t.Type == TokenType.UNKNOWN) throw new ParseException("Invalid operator / unknown single token");
         if (t.Type == TokenType.VARIABLE) return ParseVariableNode(t.Value);
-        else if (t.Type == TokenType.DOUBLE || t.Type == TokenType.INTEGER) return new LiteralNode(t.Value);
-        throw new ParseException("Token type is not a variable or a number");
+        else if (t.Type == TokenType.DOUBLE) return new LiteralNode(Convert.ToDouble(t.Value));
+        else if (t.Type == TokenType.INTEGER) return new LiteralNode(Convert.ToInt32(t.Value));
+        else if (t.Type == TokenType.RIGHT_CURLY) throw new ParseException("must end with a )");
+        throw new ParseException("Token type is not a variable or a number: "+t.Type+" "+t.Value);
     }
-    public static AST.ExpressionNode CreateBinaryOperatorNode(string op, AST.ExpressionNode l, AST.ExpressionNode r)
+    private static AST.ExpressionNode CreateBinaryOperatorNode(string op, AST.ExpressionNode l, AST.ExpressionNode r)
     {
         if (!GeneralUtils.IsValidOperator(op)) throw new ParseException("Invalid Operator");
         switch (op)
@@ -60,7 +104,7 @@ public static class Parser
         }
         throw new ParseException("Invalid operator after check");
     }
-    public static AST.VariableNode ParseVariableNode(string s)
+    private static AST.VariableNode ParseVariableNode(string s)
     {
         if (!GeneralUtils.IsValidVariable(s)) throw new ParseException("Invalid Variable Name");
         return new AST.VariableNode(s);
@@ -68,26 +112,31 @@ public static class Parser
     #endregion
 
     #region Individual Statements
-    public static AST.AssignmentStmt ParseAssignemntStmt(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
+    private static AST.AssignmentStmt ParseAssignemntStmt(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
     {
         throw new NotImplementedException();
     }
-    public static AST.ReturnStmt ParseReturnStmt(List<Tokenizer.Token> l)
+    private static AST.ReturnStmt ParseReturnStatement(List<Tokenizer.Token> l)
     {
-        throw new NotImplementedException();
+        if (l[0].Type == TokenType.RETURN)
+        {
+            l.RemoveAt(0);
+            return new ReturnStmt(ParseExpression(l));
+        }
+        throw new ParseException("Return stmt does not begin with return");
     }
-    public static AST.Statement ParseStatement(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
+    private static AST.Statement ParseStatement(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
     {
         throw new NotImplementedException();
     }
     #endregion
 
     #region Blocks
-    public static void ParseStmtList(List<string> lines, BlockStmt b)
+    private static void ParseStmtList(List<string> lines, BlockStmt b)
     {
         throw new NotImplementedException();
     }
-    public static AST.BlockStmt ParseBlockStmt(List<string> lines, SymbolTable<Object, Object> s)
+    private static AST.BlockStmt ParseBlockStmt(List<string> lines, SymbolTable<Object, Object> s)
     {
         throw new NotImplementedException();
     }

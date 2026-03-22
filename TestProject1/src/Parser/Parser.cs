@@ -22,6 +22,7 @@ public static class Parser
     #region Expressions
     private static AST.ExpressionNode ParseExpression(List<Token> l)
     {
+        if (l.Count < 1) throw new ParseException("missing expression");
         if (l[0].Type != TokenType.LEFT_PAREN) throw new ParseException("Expression must begin with a (");
         l.RemoveAt(0);
         var parsed = ParseExpressionContent(l);
@@ -111,26 +112,31 @@ public static class Parser
     #endregion
 
     #region Individual Statements
-    public static AST.AssignmentStmt ParseAssignemntStmt(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
+    private static AST.AssignmentStmt ParseAssignemntStmt(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
     {
         throw new NotImplementedException();
     }
-    public static AST.ReturnStmt ParseReturnStmt(List<Tokenizer.Token> l)
+    private static AST.ReturnStmt ParseReturnStatement(List<Tokenizer.Token> l)
     {
-        throw new NotImplementedException();
+        if (l[0].Type == TokenType.RETURN)
+        {
+            l.RemoveAt(0);
+            return new ReturnStmt(ParseExpression(l));
+        }
+        throw new ParseException("Return stmt does not begin with return");
     }
-    public static AST.Statement ParseStatement(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
+    private static AST.Statement ParseStatement(List<Tokenizer.Token> l, SymbolTable<Object, Object> s)
     {
         throw new NotImplementedException();
     }
     #endregion
 
     #region Blocks
-    public static void ParseStmtList(List<string> lines, BlockStmt b)
+    private static void ParseStmtList(List<string> lines, BlockStmt b)
     {
         throw new NotImplementedException();
     }
-    public static AST.BlockStmt ParseBlockStmt(List<string> lines, SymbolTable<Object, Object> s)
+    private static AST.BlockStmt ParseBlockStmt(List<string> lines, SymbolTable<Object, Object> s)
     {
         throw new NotImplementedException();
     }

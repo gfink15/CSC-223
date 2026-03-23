@@ -160,7 +160,7 @@ public abstract class Operator : ExpressionNode
     /// <param name="r">The right operand expression.</param>
     public Operator(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -181,7 +181,7 @@ public abstract class BinaryOperator : Operator
     {
         // Recursively unparse the left and right children, then wrap the result
         // in parentheses with the operator symbol (from ToString()) in between.
-        return "(" + Left.Unparse(level) + ToString() + Right.Unparse(level) + ")";
+        return "(" + Left.Unparse(level) + " " + ToString() + " " + Right.Unparse(level) + ")";
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public abstract class BinaryOperator : Operator
     /// <param name="r">The right operand expression.</param>
     public BinaryOperator(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -207,7 +207,7 @@ public class PlusNode : BinaryOperator
 
     public PlusNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -222,7 +222,7 @@ public class MinusNode : BinaryOperator
 
     public MinusNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -237,7 +237,7 @@ public class TimesNode : BinaryOperator
 
     public TimesNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -252,7 +252,7 @@ public class FloatDivNode : BinaryOperator
 
     public FloatDivNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -267,7 +267,7 @@ public class IntDivNode : BinaryOperator
 
     public IntDivNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -282,7 +282,7 @@ public class ModulusNode : BinaryOperator
 
     public ModulusNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -297,7 +297,7 @@ public class ExponentiationNode : BinaryOperator
 
     public ExponentiationNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -334,7 +334,7 @@ public class BlockStmt : Statement
         string builder = GeneralUtils.GetIndentation(level) + "{";
 
         // Recursively unparse each child statement at one deeper indentation level.
-        foreach (Statement s in children)
+        foreach (Statement s in Statements)
         {
             builder += "\n" + s.Unparse(level + 1);
         }
@@ -345,7 +345,7 @@ public class BlockStmt : Statement
     }
 
     /// <summary>The ordered list of statements contained within this block.</summary>
-    public List<Statement> children;
+    public List<Statement> Statements;
 
     /// <summary>
     /// The symbol table for this block's scope, mapping variable names to their
@@ -363,7 +363,7 @@ public class BlockStmt : Statement
     /// <param name="symbolTable">The symbol table representing this block's scope.</param>
     public BlockStmt(SymbolTable<string, object> symbolTable) : base()
     {
-        children = new List<Statement>();
+        Statements = new List<Statement>();
         SymbolTable = symbolTable;
     }
 
@@ -374,7 +374,7 @@ public class BlockStmt : Statement
     /// <param name="s">The statement to add.</param>
     public void Add(Statement s)
     {
-        children.Add(s);
+        Statements.Add(s);
     }
 }
 
@@ -399,18 +399,18 @@ public class AssignmentStmt : Statement
         string builder = GeneralUtils.GetIndentation(level);
 
         // Return: variable_name := value_expression
-        builder += Left.Unparse(0) + ToString() + Right.Unparse();
+        builder += Variable.Unparse(0) + " " + ToString() + " " + Expression.Unparse();
         return builder;
     }
 
     /// <summary>The target variable being assigned to</summary>
-    public ExpressionNode Left
+    public VariableNode Variable
     {
         get; set;
     }
 
     /// <summary>The value expression whose result is assigned to the variable</summary>
-    public ExpressionNode Right
+    public ExpressionNode Expression
     {
         get; set;
     }
@@ -420,10 +420,10 @@ public class AssignmentStmt : Statement
     /// </summary>
     /// <param name="l">The target variable</param>
     /// <param name="r">The value expression</param>
-    public AssignmentStmt(ExpressionNode l, ExpressionNode r)
+    public AssignmentStmt(VariableNode l, ExpressionNode r)
     {
-        Left = l;
-        Right = r;
+        Variable = l;
+        Expression = r;
     }
 }
 
@@ -446,11 +446,11 @@ public class ReturnStmt : Statement
     public override string Unparse(int level = 0)
     {
         // Combine indentation, the return keyword, and the unparsed child expression.
-        return GeneralUtils.GetIndentation(level) + ToString() + Child.Unparse(0);
+        return GeneralUtils.GetIndentation(level) + " " + ToString() + " " + Expression.Unparse(0);
     }
 
     /// <summary>The expression whose value is returned by this statement.</summary>
-    public ExpressionNode Child
+    public ExpressionNode Expression
     {
         get; set;
     }
@@ -461,6 +461,6 @@ public class ReturnStmt : Statement
     /// <param name="c">The expression to evaluate and return.</param>
     public ReturnStmt(ExpressionNode c)
     {
-        Child = c;
+        Expression = c;
     }
 }

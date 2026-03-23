@@ -160,7 +160,7 @@ public abstract class Operator : ExpressionNode
     /// <param name="r">The right operand expression.</param>
     public Operator(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -181,7 +181,7 @@ public abstract class BinaryOperator : Operator
     {
         // Recursively unparse the left and right children, then wrap the result
         // in parentheses with the operator symbol (from ToString()) in between.
-        return "(" + Left.Unparse(level) + ToString() + Right.Unparse(level) + ")";
+        return "(" + Left.Unparse(level) + " " + ToString() + " " + Right.Unparse(level) + ")";
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public abstract class BinaryOperator : Operator
     /// <param name="r">The right operand expression.</param>
     public BinaryOperator(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -207,7 +207,7 @@ public class PlusNode : BinaryOperator
 
     public PlusNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -222,7 +222,7 @@ public class MinusNode : BinaryOperator
 
     public MinusNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -237,7 +237,7 @@ public class TimesNode : BinaryOperator
 
     public TimesNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -252,7 +252,7 @@ public class FloatDivNode : BinaryOperator
 
     public FloatDivNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -267,7 +267,7 @@ public class IntDivNode : BinaryOperator
 
     public IntDivNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -282,7 +282,7 @@ public class ModulusNode : BinaryOperator
 
     public ModulusNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -297,7 +297,7 @@ public class ExponentiationNode : BinaryOperator
 
     public ExponentiationNode(ExpressionNode l, ExpressionNode r) : base(l, r)
     {
-        
+
     }
 }
 
@@ -399,7 +399,7 @@ public class AssignmentStmt : Statement
         string builder = GeneralUtils.GetIndentation(level);
 
         // Return: variable_name := value_expression
-        builder += Variable.Unparse(0) + ToString() + Expression.Unparse();
+        builder += Variable.Unparse(0) + " " + ToString() + " " + Expression.Unparse();
         return builder;
     }
 
@@ -446,7 +446,7 @@ public class ReturnStmt : Statement
     public override string Unparse(int level = 0)
     {
         // Combine indentation, the return keyword, and the unparsed child expression.
-        return GeneralUtils.GetIndentation(level) + ToString() + Expression.Unparse(0);
+        return GeneralUtils.GetIndentation(level) + " " + ToString() + " " + Expression.Unparse(0);
     }
 
     /// <summary>The expression whose value is returned by this statement.</summary>

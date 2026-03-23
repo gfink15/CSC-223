@@ -142,9 +142,6 @@ public class SymbolTable<TKey, TValue> : IDictionary<TKey, TValue>
             int keyIndex = _KeyDLL.IndexOf(key);
             value = _ValueDLL[keyIndex];
 
-            // If value is null and we have a parent, signal to check parent instead
-            if (value == null && this.Parent != null) return false;
-
             return true;
         }
         else

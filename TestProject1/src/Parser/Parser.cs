@@ -339,6 +339,7 @@ public static class Parser
                 lines.RemoveAt(0);
             }
         }
+        throw new ParseException("missing a }");
     }
 
     /// <summary>

@@ -537,9 +537,9 @@ namespace AST.Builders.Tests
         #region DebugBuilder Tests – Unparse correctness
 
         [Theory]
-        [InlineData(1, 2, "(1+2)")]
-        [InlineData(0, 0, "(0+0)")]
-        [InlineData(-3, 7, "(-3+7)")]
+        [InlineData(1, 2, "(1 + 2)")]
+        [InlineData(0, 0, "(0 + 0)")]
+        [InlineData(-3, 7, "(-3 + 7)")]
         public void DebugBuilder_PlusNode_UnparsesCorrectly(int left, int right, string expected)
         {
             var builder = new DebugBuilder();
@@ -548,8 +548,8 @@ namespace AST.Builders.Tests
         }
 
         [Theory]
-        [InlineData(5, 3, "(5-3)")]
-        [InlineData(0, 1, "(0-1)")]
+        [InlineData(5, 3, "(5 - 3)")]
+        [InlineData(0, 1, "(0 - 1)")]
         public void DebugBuilder_MinusNode_UnparsesCorrectly(int left, int right, string expected)
         {
             var builder = new DebugBuilder();
@@ -558,8 +558,8 @@ namespace AST.Builders.Tests
         }
 
         [Theory]
-        [InlineData(2, 4, "(2*4)")]
-        [InlineData(0, 99, "(0*99)")]
+        [InlineData(2, 4, "(2 * 4)")]
+        [InlineData(0, 99, "(0 * 99)")]
         public void DebugBuilder_TimesNode_UnparsesCorrectly(int left, int right, string expected)
         {
             var builder = new DebugBuilder();
@@ -568,7 +568,7 @@ namespace AST.Builders.Tests
         }
 
         [Theory]
-        [InlineData(10, 3, "(10/3)")]
+        [InlineData(10, 3, "(10 / 3)")]
         public void DebugBuilder_FloatDivNode_UnparsesCorrectly(int left, int right, string expected)
         {
             var builder = new DebugBuilder();
@@ -577,7 +577,7 @@ namespace AST.Builders.Tests
         }
 
         [Theory]
-        [InlineData(10, 3, "(10//3)")]
+        [InlineData(10, 3, "(10 // 3)")]
         public void DebugBuilder_IntDivNode_UnparsesCorrectly(int left, int right, string expected)
         {
             var builder = new DebugBuilder();
@@ -586,7 +586,7 @@ namespace AST.Builders.Tests
         }
 
         [Theory]
-        [InlineData(10, 3, "(10%3)")]
+        [InlineData(10, 3, "(10 % 3)")]
         public void DebugBuilder_ModulusNode_UnparsesCorrectly(int left, int right, string expected)
         {
             var builder = new DebugBuilder();
@@ -595,7 +595,7 @@ namespace AST.Builders.Tests
         }
 
         [Theory]
-        [InlineData(2, 3, "(2**3)")]
+        [InlineData(2, 3, "(2 ** 3)")]
         public void DebugBuilder_ExponentiationNode_UnparsesCorrectly(int left, int right, string expected)
         {
             var builder = new DebugBuilder();

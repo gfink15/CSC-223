@@ -256,6 +256,8 @@ public static class Parser
     {
         if (l.Count < 1) throw new ParseException("Missing Statement");
         else if (l[0].Type == TokenType.RETURN) return ParseReturnStatement(l);
+
+        // Check for Assignment Statement
         else if (l.Count >= 2 && l[0].Type == TokenType.VARIABLE && l[1].Type == TokenType.ASSIGNMENT)
         {
             return ParseAssignmentStmt(l, s);

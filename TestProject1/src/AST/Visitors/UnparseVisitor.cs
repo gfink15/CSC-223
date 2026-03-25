@@ -27,18 +27,29 @@ namespace AST
         /// <param name="stmt">The statement to unparse</param>
         /// <param name="level">The indentation level</param>
         /// <returns>String representation of the statement</returns>
-        public string Unparse(Statement stmt, int level = 0)
-        {
-            return stmt.Accept(this, level);
-        }
+        // public string Unparse(Statement stmt, int level = 0)
+        // {
+        //     return stmt.Accept(this, level);
+        // }
 
         #region Expression Node Visit Methods
 
-        public string Visit(PlusNode node, int level)
+        public string Visit(BinaryOperator node, int level)
         {
             string left = node.Left.Accept(this, level);
             string right = node.Right.Accept(this, level);
-            return $"({left} + {right})";
+            string op = node.ToString();
+            return $"({left} {op} {right})";
+        }
+
+        public string Visit(LiteralNode node, int level)
+        {
+            return node.Data.ToString();
+        }
+
+        public string Visit(VariableNode node, int level)
+        {
+            return node.Name;
         }
 
         // TODO

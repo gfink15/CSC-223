@@ -21,6 +21,7 @@ namespace AST {
     public interface IVisitor<TParam, TResult>
     {
         // Expression nodes
+        TResult Visit(BinaryOperator node, TParam param);
         TResult Visit(PlusNode node, TParam param);
         TResult Visit(MinusNode node, TParam param);
         TResult Visit(TimesNode node, TParam param);
@@ -31,10 +32,10 @@ namespace AST {
         TResult Visit(LiteralNode node, TParam param);
         TResult Visit(VariableNode node, TParam param);
 
-        // Statement nodes
-        TResult Visit(AssignmentStmt node, TParam param);
-        TResult Visit(ReturnStmt node, TParam param);
-        TResult Visit(BlockStmt node, TParam param);
+        // // Statement nodes
+        // TResult Visit(AssignmentStmt node, TParam param);
+        // TResult Visit(ReturnStmt node, TParam param);
+        // TResult Visit(BlockStmt node, TParam param);
     }
 
     #endregion
@@ -130,11 +131,15 @@ namespace AST {
             return Data.ToString();
         }
 
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
+        }
+
         /// <summary>The raw value stored in this literal node (e.g. an int, double, or string).</summary>
         public object Data
         {
-            get;
-            set;
+            get; set;
         }
 
         /// <summary>
@@ -164,11 +169,15 @@ namespace AST {
             return Name;
         }
 
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
+        }
+
         /// <summary>The identifier name of this variable as it appears in source code.</summary>
         public string Name
         {
-            get;
-            set;
+            get; set;
         }
 
         /// <summary>
@@ -221,6 +230,12 @@ namespace AST {
             // in parentheses with the operator symbol (from ToString()) in between.
             return "(" + Left.Unparse(level) + " " + ToString() + " " + Right.Unparse(level) + ")";
         }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
+        }
+
 
         /// <summary>
         /// Constructs a BinaryOperator with the given left and right operands,

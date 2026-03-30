@@ -32,10 +32,10 @@ namespace AST
         TResult Visit(LiteralNode node, TParam param);
         TResult Visit(VariableNode node, TParam param);
 
-        // // Statement nodes
-        // TResult Visit(AssignmentStmt node, TParam param);
-        // TResult Visit(ReturnStmt node, TParam param);
-        // TResult Visit(BlockStmt node, TParam param);
+        // Statement nodes
+        TResult Visit(AssignmentStmt node, TParam param);
+        TResult Visit(ReturnStmt node, TParam param);
+        TResult Visit(BlockStmt node, TParam param);
     }
 
     #endregion
@@ -398,6 +398,8 @@ namespace AST
         /// <param name="level">The current indentation depth, used for pretty-printing.</param>
         /// <returns>A string representation of this statement.</returns>
         public abstract string Unparse(int level = 0);
+
+        public abstract TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param);
     }
 
     /// <summary>
@@ -460,6 +462,11 @@ namespace AST
         {
             Statements.Add(s);
         }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
+        }
     }
 
     /// <summary>
@@ -509,6 +516,11 @@ namespace AST
             Variable = l;
             Expression = r;
         }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
+        }
     }
 
     /// <summary>
@@ -546,6 +558,11 @@ namespace AST
         public ReturnStmt(ExpressionNode c)
         {
             Expression = c;
+        }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
         }
     }
 }

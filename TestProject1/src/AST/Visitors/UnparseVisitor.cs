@@ -1,6 +1,8 @@
 using System;
 using System.Text;
 using AST;
+using Parser.Tests;
+using Utilities;
 
 namespace AST
 {
@@ -102,11 +104,30 @@ namespace AST
         }
         #endregion
 
-
-
         #region Statement Node Visit Methods
 
-        // TODO
+        public string Visit(AssignmentStmt statement, int level)
+        {
+            return GeneralUtils.GetIndentation(level) + $"{statement.Variable.Accept(this, level)} := {statement.Expression.Accept(this, level)}";
+        }
+
+        public string Visit(ReturnStmt statement, int level)
+        {
+            return GeneralUtils.GetIndentation(level) + $"return {statement.Expression.Accept(this, level)}";
+        }
+
+        public string Visit(BlockStmt statement, int level)
+        {
+            string builder = GeneralUtils.GetIndentation(level) + "{";
+
+            foreach (Statement s in statement.Statements)
+            {
+                builder += "\n" + s.Accept(this, level + 1);
+            }
+
+            builder += "\n" + GeneralUtils.GetIndentation(level) + "}";
+            return builder;
+        }
 
         #endregion
     }

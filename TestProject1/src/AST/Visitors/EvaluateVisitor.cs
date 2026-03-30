@@ -24,7 +24,7 @@ namespace AST
     {
         // Flag to indicate if a return statement has been encountered
         private bool _returnEncountered;
-        
+
         // Value from the return statement
         private object _returnValue;
 
@@ -46,11 +46,11 @@ namespace AST
         {
             _returnEncountered = false;
             _returnValue = null;
-            
+
             // Execute the AST with a null initial scope
             // (the BlockStmt will use its own symbol table)
             ast.Accept(this, null);
-            
+
             return _returnValue;
         }
 
@@ -139,7 +139,7 @@ namespace AST
         {
             // Use this block's symbol table, which is already linked to its parent
             SymbolTable<string, object> currentScope = node.SymbolTable;
-            
+
             // TODO
         }
 

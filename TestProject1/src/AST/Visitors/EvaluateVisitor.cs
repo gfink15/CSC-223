@@ -135,6 +135,19 @@ namespace AST
 
         // TODO
 
+        public object Visit(AssignmentStmt node, SymbolTable<string, object> symbolTable)
+        {
+            symbolTable[node.Variable.Name] = node.Expression.Accept(this, symbolTable);
+
+        }
+
+        public object Visit(ReturnStmt node, SymbolTable<string, object> symbolTable)
+        {
+            _returnEncountered = true;
+            _returnValue = node.Expression.Accept(this, symbolTable);
+            return _returnValue;
+        }
+
         public object Visit(BlockStmt node, SymbolTable<string, object> symbolTable)
         {
             // Use this block's symbol table, which is already linked to its parent

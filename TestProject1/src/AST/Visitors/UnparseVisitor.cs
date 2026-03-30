@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using AST;
-using Parser.Tests;
 using Utilities;
 
 namespace AST
@@ -35,14 +34,6 @@ namespace AST
         // }
 
         #region Expression Node Visit Methods
-
-        public string Visit(BinaryOperator node, int level)
-        {
-            string left = node.Left.Accept(this, level);
-            string right = node.Right.Accept(this, level);
-            string op = node.ToString();
-            return $"({left} {op} {right})";
-        }
 
         public string Visit(PlusNode node, int level)
         {
@@ -103,6 +94,8 @@ namespace AST
             return node.Name;
         }
         #endregion
+
+
 
         #region Statement Node Visit Methods
 

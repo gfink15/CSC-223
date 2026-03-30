@@ -104,7 +104,7 @@ namespace AST
         }
         #endregion
 
-        #region Statement Node Visit Methods 
+        #region Statement Node Visit Methods
 
         public string Visit(AssignmentStmt statement, int level)
         {

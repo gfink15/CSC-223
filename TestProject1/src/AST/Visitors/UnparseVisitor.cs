@@ -42,6 +42,55 @@ namespace AST
             return $"({left} {op} {right})";
         }
 
+        public string Visit(PlusNode node, int level)
+        {
+            string left = node.Left.Accept(this, level);
+            string right = node.Right.Accept(this, level);
+            return $"({left} + {right})";
+        }
+
+        public string Visit(MinusNode node, int level)
+        {
+            string left = node.Left.Accept(this, level);
+            string right = node.Right.Accept(this, level);
+            return $"({left} - {right})";
+        }
+
+        public string Visit(TimesNode node, int level)
+        {
+            string left = node.Left.Accept(this, level);
+            string right = node.Right.Accept(this, level);
+            return $"({left} * {right})";
+        }
+
+        public string Visit(FloatDivNode node, int level)
+        {
+            string left = node.Left.Accept(this, level);
+            string right = node.Right.Accept(this, level);
+            return $"({left} / {right})";
+        }
+
+        public string Visit(IntDivNode node, int level)
+        {
+            string left = node.Left.Accept(this, level);
+            string right = node.Right.Accept(this, level);
+            return $"({left} // {right})";
+        }
+
+        public string Visit(ModulusNode node, int level)
+        {
+            string left = node.Left.Accept(this, level);
+            string right = node.Right.Accept(this, level);
+            return $"({left} % {right})";
+        }
+
+        public string Visit(ExponentiationNode node, int level)
+        {
+            string left = node.Left.Accept(this, level);
+            string right = node.Right.Accept(this, level);
+            return $"({left} ** {right})";
+        }
+
         public string Visit(LiteralNode node, int level)
         {
             return node.Data.ToString();
@@ -51,9 +100,6 @@ namespace AST
         {
             return node.Name;
         }
-
-        // TODO
-
         #endregion
 
 

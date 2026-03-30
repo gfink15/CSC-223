@@ -22,14 +22,13 @@ namespace AST
     public interface IVisitor<TParam, TResult>
     {
         // Expression nodes
-        TResult Visit(BinaryOperator node, TParam param);
-        TResult Visit(PlusNode node, TParam param) => Visit(node as BinaryOperator, param);
-        TResult Visit(MinusNode node, TParam param) => Visit(node as BinaryOperator, param);
-        TResult Visit(TimesNode node, TParam param) => Visit(node as BinaryOperator, param);
-        TResult Visit(FloatDivNode node, TParam param) => Visit(node as BinaryOperator, param);
-        TResult Visit(IntDivNode node, TParam param) => Visit(node as BinaryOperator, param);
-        TResult Visit(ModulusNode node, TParam param) => Visit(node as BinaryOperator, param);
-        TResult Visit(ExponentiationNode node, TParam param) => Visit(node as BinaryOperator, param);
+        TResult Visit(PlusNode node, TParam param);
+        TResult Visit(MinusNode node, TParam param);
+        TResult Visit(TimesNode node, TParam param);
+        TResult Visit(FloatDivNode node, TParam param);
+        TResult Visit(IntDivNode node, TParam param);
+        TResult Visit(ModulusNode node, TParam param);
+        TResult Visit(ExponentiationNode node, TParam param);
         TResult Visit(LiteralNode node, TParam param);
         TResult Visit(VariableNode node, TParam param);
 
@@ -230,11 +229,6 @@ namespace AST
             // Recursively unparse the left and right children, then wrap the result
             // in parentheses with the operator symbol (from ToString()) in between.
             return "(" + Left.Unparse(level) + " " + ToString() + " " + Right.Unparse(level) + ")";
-        }
-
-        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
-        {
-            return visitor.Visit(this, param);
         }
 
 

@@ -9,7 +9,8 @@ using Tokenizer;
 using Utilities;
 using Utilities.Containers;
 
-namespace AST {
+namespace AST
+{
 
     #region Visitor Interface
 
@@ -22,13 +23,13 @@ namespace AST {
     {
         // Expression nodes
         TResult Visit(BinaryOperator node, TParam param);
-        TResult Visit(PlusNode node, TParam param);
-        TResult Visit(MinusNode node, TParam param);
-        TResult Visit(TimesNode node, TParam param);
-        TResult Visit(FloatDivNode node, TParam param);
-        TResult Visit(IntDivNode node, TParam param);
-        TResult Visit(ModulusNode node, TParam param);
-        TResult Visit(ExponentiationNode node, TParam param);
+        TResult Visit(PlusNode node, TParam param) => Visit(node as BinaryOperator, param);
+        TResult Visit(MinusNode node, TParam param) => Visit(node as BinaryOperator, param);
+        TResult Visit(TimesNode node, TParam param) => Visit(node as BinaryOperator, param);
+        TResult Visit(FloatDivNode node, TParam param) => Visit(node as BinaryOperator, param);
+        TResult Visit(IntDivNode node, TParam param) => Visit(node as BinaryOperator, param);
+        TResult Visit(ModulusNode node, TParam param) => Visit(node as BinaryOperator, param);
+        TResult Visit(ExponentiationNode node, TParam param) => Visit(node as BinaryOperator, param);
         TResult Visit(LiteralNode node, TParam param);
         TResult Visit(VariableNode node, TParam param);
 
@@ -262,6 +263,12 @@ namespace AST {
         {
 
         }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
+        }
+
     }
 
     /// <summary>Represents the subtraction operator (-) in a binary expression.</summary>
@@ -276,6 +283,11 @@ namespace AST {
         public MinusNode(ExpressionNode l, ExpressionNode r) : base(l, r)
         {
 
+        }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
         }
     }
 
@@ -292,6 +304,11 @@ namespace AST {
         {
 
         }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
+        }
     }
 
     /// <summary>Represents the floating-point division operator (/) in a binary expression.</summary>
@@ -306,6 +323,11 @@ namespace AST {
         public FloatDivNode(ExpressionNode l, ExpressionNode r) : base(l, r)
         {
 
+        }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
         }
     }
 
@@ -322,6 +344,11 @@ namespace AST {
         {
 
         }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
+        }
     }
 
     /// <summary>Represents the modulus operator (%) in a binary expression.</summary>
@@ -337,6 +364,11 @@ namespace AST {
         {
 
         }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
+        }
     }
 
     /// <summary>Represents the exponentiation operator (**) in a binary expression.</summary>
@@ -351,6 +383,11 @@ namespace AST {
         public ExponentiationNode(ExpressionNode l, ExpressionNode r) : base(l, r)
         {
 
+        }
+
+        public override TResult Accept<TParam, TResult>(IVisitor<TParam, TResult> visitor, TParam param)
+        {
+            return visitor.Visit(this, param);
         }
     }
 

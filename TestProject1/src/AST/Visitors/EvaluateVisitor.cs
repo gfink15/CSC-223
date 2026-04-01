@@ -45,9 +45,9 @@ namespace AST
 
             // Execute the AST with a null initial scope
             // (the BlockStmt will use its own symbol table)
-            ast.Accept(this, null);
+            //ast.Accept(this, null);
 
-            return _returnValue;
+            return ast.Accept(this, null);
         }
 
         // TODO
@@ -95,6 +95,7 @@ namespace AST
         {
             object left = node.Left.Accept(this, symbolTable);
             object right = node.Right.Accept(this, symbolTable);
+            if (Convert.ToInt32(right) == 0) throw new EvaluationException("Can\'t FloatDiv by 0");
             return Convert.ToDouble(left) / Convert.ToDouble(right);
         }
 
@@ -102,6 +103,7 @@ namespace AST
         {
             object left = node.Left.Accept(this, symbolTable);
             object right = node.Right.Accept(this, symbolTable);
+            if (Convert.ToInt32(right) == 0) throw new EvaluationException("Can\'t IntDiv by 0");
             return Convert.ToInt32(left) / Convert.ToInt32(right);
         }
 
@@ -109,6 +111,7 @@ namespace AST
         {
             object left = node.Left.Accept(this, symbolTable);
             object right = node.Right.Accept(this, symbolTable);
+            if (Convert.ToInt32(right) == 0) throw new EvaluationException("Can\'t Mod by 0");
             return Convert.ToDouble(left) % Convert.ToDouble(right);
         }
 
@@ -153,9 +156,11 @@ namespace AST
             foreach (Statement s in node.Statements)
             {
                 s.Accept(this, currentScope);
-                if (_returnEncountered) return _returnValue;
+                if (_returnEncountered) break;
             }
-            return _returnValue;
+            double _returnValueNumber = Convert.ToDouble(_returnValue);
+            if (Math.Floor(_returnValueNumber) == Convert.ToDouble(_returnValue)) return Convert.ToInt32(_returnValue);
+            return _returnValueNumber;
         }
 
         #endregion

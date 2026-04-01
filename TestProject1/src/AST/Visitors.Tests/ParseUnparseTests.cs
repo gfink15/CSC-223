@@ -3,6 +3,11 @@
 // Verifies that parsing source code into an AST then unparsing it via the
 // UnparseVisitor produces the expected canonical output, and that the
 // canonical output is idempotent (unparse ∘ parse ∘ unparse ∘ parse == unparse ∘ parse).
+//
+// Bugs: None known.
+//
+// @author Graham Fink, Mridul Agrawal
+// @date   4/1/2026
 // =============================================================================
 
 using Xunit;
@@ -30,9 +35,7 @@ namespace AST.Visitors.Tests
             return ast.Accept(_visitor, 0);
         }
 
-        // =========================================================================
-        //  SECTION 1 — Simple literal programs
-        // =========================================================================
+        #region Simple Literal Programs
 
         [Fact]
         public void RoundTrip_SingleIntAssignment()
@@ -43,7 +46,7 @@ namespace AST.Visitors.Tests
             // The parser strips the redundant parens around a single literal
             string expected =
                 "{\n" +
-                "    x := 42\n" +
+                "    x := (42)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
@@ -56,7 +59,7 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    return 42\n" +
+                "    return (42)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
@@ -69,15 +72,15 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    x := 1\n" +
-                "    return x\n" +
+                "    x := (1)\n" +
+                "    return (x)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
 
-        // =========================================================================
-        //  SECTION 2 — Binary expression programs (all operators)
-        // =========================================================================
+        #endregion
+
+        #region Binary Expression Programs — All Operators
 
         [Fact]
         public void RoundTrip_PlusExpression()
@@ -170,9 +173,9 @@ namespace AST.Visitors.Tests
             Assert.Equal(expected, unparsed);
         }
 
-        // =========================================================================
-        //  SECTION 3 — Nested expressions
-        // =========================================================================
+        #endregion
+
+        #region Nested Expressions
 
         [Fact]
         public void RoundTrip_NestedArithmetic()
@@ -208,16 +211,16 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    a := 1\n" +
-                "    b := 2\n" +
+                "    a := (1)\n" +
+                "    b := (2)\n" +
                 "    c := (a + b)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
 
-        // =========================================================================
-        //  SECTION 4 — Multiple statements
-        // =========================================================================
+        #endregion
+
+        #region Multiple Statements
 
         [Fact]
         public void RoundTrip_MultipleAssignmentsAndReturn()
@@ -227,10 +230,10 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    a := 5\n" +
-                "    b := 10\n" +
+                "    a := (5)\n" +
+                "    b := (10)\n" +
                 "    c := (a + b)\n" +
-                "    return c\n" +
+                "    return (c)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
@@ -260,14 +263,14 @@ namespace AST.Visitors.Tests
                 "    e := (9 // 2)\n" +
                 "    f := (10 % 3)\n" +
                 "    g := (2 ** 3)\n" +
-                "    return a\n" +
+                "    return (a)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
 
-        // =========================================================================
-        //  SECTION 5 — Nested blocks
-        // =========================================================================
+        #endregion
+
+        #region Nested Blocks
 
         [Fact]
         public void RoundTrip_SingleNestedBlock()
@@ -284,11 +287,11 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    x := 10\n" +
+                "    x := (10)\n" +
                 "    {\n" +
                 "        y := (x + 5)\n" +
                 "    }\n" +
-                "    return x\n" +
+                "    return (x)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
@@ -310,11 +313,11 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    a := 1\n" +
+                "    a := (1)\n" +
                 "    {\n" +
-                "        b := 2\n" +
+                "        b := (2)\n" +
                 "        {\n" +
-                "            c := 3\n" +
+                "            c := (3)\n" +
                 "        }\n" +
                 "    }\n" +
                 "}";
@@ -339,14 +342,14 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    a := 1\n" +
+                "    a := (1)\n" +
                 "    {\n" +
-                "        b := 2\n" +
+                "        b := (2)\n" +
                 "    }\n" +
                 "    {\n" +
-                "        c := 3\n" +
+                "        c := (3)\n" +
                 "    }\n" +
-                "    return a\n" +
+                "    return (a)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
@@ -372,24 +375,24 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    a := 1\n" +
+                "    a := (1)\n" +
                 "    {\n" +
-                "        b := 2\n" +
+                "        b := (2)\n" +
                 "        {\n" +
-                "            c := 3\n" +
+                "            c := (3)\n" +
                 "            {\n" +
-                "                d := 4\n" +
+                "                d := (4)\n" +
                 "            }\n" +
                 "        }\n" +
                 "    }\n" +
-                "    return a\n" +
+                "    return (a)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
 
-        // =========================================================================
-        //  SECTION 6 — Block with complex expressions inside
-        // =========================================================================
+        #endregion
+
+        #region Block with Complex Expressions
 
         [Fact]
         public void RoundTrip_NestedBlockWithComplexExpressions()
@@ -406,10 +409,10 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    x := 10\n" +
+                "    x := (10)\n" +
                 "    {\n" +
                 "        y := ((x + 1) * (x - 1))\n" +
-                "        return y\n" +
+                "        return (y)\n" +
                 "    }\n" +
                 "}";
             Assert.Equal(expected, unparsed);
@@ -430,20 +433,18 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    a := 5\n" +
-                "    b := 10\n" +
+                "    a := (5)\n" +
+                "    b := (10)\n" +
                 "    c := ((a + b) * (b - a))\n" +
                 "    d := (((c + 1) ** 2) // 10)\n" +
-                "    return d\n" +
+                "    return (d)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
 
-        // =========================================================================
-        //  SECTION 7 — Idempotency tests
-        //  The canonical output of unparse should itself parse and unparse to the
-        //  same string: unparse(parse(unparse(parse(input)))) == unparse(parse(input))
-        // =========================================================================
+        #endregion
+
+        #region Idempotency Tests
 
         [Theory]
         [InlineData("{\n  x := (42)\n}")]
@@ -540,9 +541,9 @@ namespace AST.Visitors.Tests
             Assert.Equal(firstPass, secondPass);
         }
 
-        // =========================================================================
-        //  SECTION 8 — Empty / minimal programs
-        // =========================================================================
+        #endregion
+
+        #region Empty / Minimal Programs
 
         [Fact]
         public void RoundTrip_EmptyBlock()
@@ -577,9 +578,9 @@ namespace AST.Visitors.Tests
             Assert.Equal(expected, unparsed);
         }
 
-        // =========================================================================
-        //  SECTION 9 — Mixed statements and nested blocks
-        // =========================================================================
+        #endregion
+
+        #region Mixed Statements and Nested Blocks
 
         [Fact]
         public void RoundTrip_StatementsBeforeAndAfterBlock()
@@ -597,12 +598,12 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    x := 1\n" +
+                "    x := (1)\n" +
                 "    {\n" +
                 "        y := (x + 1)\n" +
                 "    }\n" +
                 "    z := (x + 2)\n" +
-                "    return z\n" +
+                "    return (z)\n" +
                 "}";
             Assert.Equal(expected, unparsed);
         }
@@ -620,9 +621,9 @@ namespace AST.Visitors.Tests
             Assert.Equal(expected, unparsed);
         }
 
-        // =========================================================================
-        //  SECTION 10 — Structural properties of unparsed output
-        // =========================================================================
+        #endregion
+
+        #region Structural Properties of Unparsed Output
 
         [Fact]
         public void RoundTrip_CorrectBraceCount()
@@ -684,5 +685,7 @@ namespace AST.Visitors.Tests
             // Level 3 statements start with 12 spaces
             Assert.StartsWith("            c", lines[5]);
         }
+
+        #endregion
     }
 }

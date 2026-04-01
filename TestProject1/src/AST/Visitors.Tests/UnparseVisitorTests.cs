@@ -2,6 +2,11 @@
 // AST Visitor Test Suite — CSC-223 Assignment 6
 // Covers: UnparseVisitor
 // Each section has (1) direct/unit tests and (2) integration tests.
+//
+// Bugs: None known.
+//
+// @author Graham Fink, Mridul Agrawal
+// @date   3/30/2026
 // =============================================================================
 
 using Xunit;
@@ -19,9 +24,7 @@ namespace AST.Visitors.Tests
     {
         private readonly UnparseVisitor _visitor = new UnparseVisitor();
 
-        // =========================================================================
-        //  SECTION 1 — Literal nodes
-        // =========================================================================
+        #region Literal Node Tests
 
         [Theory]
         [InlineData(0)]
@@ -64,9 +67,9 @@ namespace AST.Visitors.Tests
             Assert.Equal(node.Accept(_visitor, 0), node.Accept(_visitor, 3));
         }
 
-        // =========================================================================
-        //  SECTION 2 — Variable nodes
-        // =========================================================================
+        #endregion
+
+        #region Variable Node Tests
 
         [Theory]
         [InlineData("x")]
@@ -88,9 +91,9 @@ namespace AST.Visitors.Tests
             Assert.Equal(node.Accept(_visitor, 0), node.Accept(_visitor, 5));
         }
 
-        // =========================================================================
-        //  SECTION 3 — Binary expression nodes (parenthesization)
-        // =========================================================================
+        #endregion
+
+        #region Binary Expression Node Tests — Parenthesization
 
         [Fact]
         public void PlusNode_IsParenthesized()
@@ -148,9 +151,9 @@ namespace AST.Visitors.Tests
             Assert.Equal("(2 ** 8)", result);
         }
 
-        // =========================================================================
-        //  SECTION 4 — Binary operators with variables
-        // =========================================================================
+        #endregion
+
+        #region Binary Operators with Variables
 
         [Fact]
         public void PlusNode_WithVariables()
@@ -173,9 +176,9 @@ namespace AST.Visitors.Tests
             Assert.Equal("(2 * pi)", node.Accept(_visitor, 0));
         }
 
-        // =========================================================================
-        //  SECTION 5 — Nested / deeply nested expressions
-        // =========================================================================
+        #endregion
+
+        #region Nested / Deeply Nested Expressions
 
         [Fact]
         public void NestedPlus_LeftAssociation()
@@ -199,18 +202,18 @@ namespace AST.Visitors.Tests
         public void NestedMixedOperators()
         {
             // (x + 1) * (y - 2)  →  ((x + 1) * (y - 2))
-            var left  = new PlusNode(new VariableNode("x"), new LiteralNode(1));
+            var left = new PlusNode(new VariableNode("x"), new LiteralNode(1));
             var right = new MinusNode(new VariableNode("y"), new LiteralNode(2));
-            var node  = new TimesNode(left, right);
+            var node = new TimesNode(left, right);
             Assert.Equal("((x + 1) * (y - 2))", node.Accept(_visitor, 0));
         }
 
         [Fact]
         public void DeeplyNestedExpression_ThreeLevels()
         {
-            // ((2 ** 3) + (4 * 5))  — two levels deep
-            var pow  = new ExponentiationNode(new LiteralNode(2), new LiteralNode(3));
-            var mul  = new TimesNode(new LiteralNode(4), new LiteralNode(5));
+            // ((2 ** 3) + (4 * 5))
+            var pow = new ExponentiationNode(new LiteralNode(2), new LiteralNode(3));
+            var mul = new TimesNode(new LiteralNode(4), new LiteralNode(5));
             var node = new PlusNode(pow, mul);
             Assert.Equal("((2 ** 3) + (4 * 5))", node.Accept(_visitor, 0));
         }
@@ -219,10 +222,10 @@ namespace AST.Visitors.Tests
         public void DeeplyNestedExpression_FourLevels()
         {
             // (((1 + 2) * 3) - (4 / 5))
-            var add   = new PlusNode(new LiteralNode(1), new LiteralNode(2));
-            var mul   = new TimesNode(add, new LiteralNode(3));
-            var div   = new FloatDivNode(new LiteralNode(4), new LiteralNode(5));
-            var node  = new MinusNode(mul, div);
+            var add = new PlusNode(new LiteralNode(1), new LiteralNode(2));
+            var mul = new TimesNode(add, new LiteralNode(3));
+            var div = new FloatDivNode(new LiteralNode(4), new LiteralNode(5));
+            var node = new MinusNode(mul, div);
             Assert.Equal("(((1 + 2) * 3) - (4 / 5))", node.Accept(_visitor, 0));
         }
 
@@ -230,23 +233,23 @@ namespace AST.Visitors.Tests
         public void ComplexExpression_AllOperators()
         {
             // ((a + b) % (c // d))
-            var plus   = new PlusNode(new VariableNode("a"), new VariableNode("b"));
+            var plus = new PlusNode(new VariableNode("a"), new VariableNode("b"));
             var intdiv = new IntDivNode(new VariableNode("c"), new VariableNode("d"));
-            var node   = new ModulusNode(plus, intdiv);
+            var node = new ModulusNode(plus, intdiv);
             Assert.Equal("((a + b) % (c // d))", node.Accept(_visitor, 0));
         }
 
-        // =========================================================================
-        //  SECTION 6 — AssignmentStmt tests
-        // =========================================================================
+        #endregion
+
+        #region AssignmentStmt Tests
 
         [Fact]
         public void Assignment_SimpleLiteral()
         {
-            // x := 5
+            // x := (5)  — bare literal is wrapped by visitor
             var stmt = new AssignmentStmt(new VariableNode("x"), new LiteralNode(5));
             string result = stmt.Accept(_visitor, 0);
-            Assert.Equal("x := 5", result);
+            Assert.Equal("x := (5)", result);
         }
 
         [Fact]
@@ -262,39 +265,39 @@ namespace AST.Visitors.Tests
         [Fact]
         public void Assignment_WithVariable()
         {
-            // a := b
+            // a := (b)  — bare variable is wrapped by visitor
             var stmt = new AssignmentStmt(new VariableNode("a"), new VariableNode("b"));
             string result = stmt.Accept(_visitor, 0);
-            Assert.Equal("a := b", result);
+            Assert.Equal("a := (b)", result);
         }
 
         [Fact]
         public void Assignment_WithNestedExpression()
         {
             // result := ((x + 1) * (y - 2))
-            var left  = new PlusNode(new VariableNode("x"), new LiteralNode(1));
+            var left = new PlusNode(new VariableNode("x"), new LiteralNode(1));
             var right = new MinusNode(new VariableNode("y"), new LiteralNode(2));
-            var expr  = new TimesNode(left, right);
-            var stmt  = new AssignmentStmt(new VariableNode("result"), expr);
+            var expr = new TimesNode(left, right);
+            var stmt = new AssignmentStmt(new VariableNode("result"), expr);
             Assert.Equal("result := ((x + 1) * (y - 2))", stmt.Accept(_visitor, 0));
         }
 
         [Fact]
         public void Assignment_AtIndentLevel1()
         {
-            // 4 spaces + x := 10
+            // 4 spaces + x := (10)
             var stmt = new AssignmentStmt(new VariableNode("x"), new LiteralNode(10));
             string result = stmt.Accept(_visitor, 1);
-            Assert.Equal("    x := 10", result);
+            Assert.Equal("    x := (10)", result);
         }
 
         [Fact]
         public void Assignment_AtIndentLevel2()
         {
-            // 8 spaces + val := 42
+            // 8 spaces + val := (42)
             var stmt = new AssignmentStmt(new VariableNode("val"), new LiteralNode(42));
             string result = stmt.Accept(_visitor, 2);
-            Assert.Equal("        val := 42", result);
+            Assert.Equal("        val := (42)", result);
         }
 
         [Theory]
@@ -306,29 +309,29 @@ namespace AST.Visitors.Tests
         {
             var stmt = new AssignmentStmt(new VariableNode("n"), new LiteralNode(0));
             string result = stmt.Accept(_visitor, level);
-            Assert.Equal(expectedIndent + "n := 0", result);
+            Assert.Equal(expectedIndent + "n := (0)", result);
         }
 
-        // =========================================================================
-        //  SECTION 7 — ReturnStmt tests
-        // =========================================================================
+        #endregion
+
+        #region ReturnStmt Tests
 
         [Fact]
         public void Return_SimpleLiteral()
         {
-            // return 42
+            // return (42)  — bare literal is wrapped by visitor
             var stmt = new ReturnStmt(new LiteralNode(42));
             string result = stmt.Accept(_visitor, 0);
-            Assert.Equal("return 42", result);
+            Assert.Equal("return (42)", result);
         }
 
         [Fact]
         public void Return_WithVariable()
         {
-            // return x
+            // return (x)  — bare variable is wrapped by visitor
             var stmt = new ReturnStmt(new VariableNode("x"));
             string result = stmt.Accept(_visitor, 0);
-            Assert.Equal("return x", result);
+            Assert.Equal("return (x)", result);
         }
 
         [Fact]
@@ -345,8 +348,8 @@ namespace AST.Visitors.Tests
         public void Return_WithNestedExpression()
         {
             // return ((x ** 2) + (y ** 2))
-            var xSq  = new ExponentiationNode(new VariableNode("x"), new LiteralNode(2));
-            var ySq  = new ExponentiationNode(new VariableNode("y"), new LiteralNode(2));
+            var xSq = new ExponentiationNode(new VariableNode("x"), new LiteralNode(2));
+            var ySq = new ExponentiationNode(new VariableNode("y"), new LiteralNode(2));
             var expr = new PlusNode(xSq, ySq);
             var stmt = new ReturnStmt(expr);
             Assert.Equal("return ((x ** 2) + (y ** 2))", stmt.Accept(_visitor, 0));
@@ -357,7 +360,7 @@ namespace AST.Visitors.Tests
         {
             var stmt = new ReturnStmt(new LiteralNode(0));
             string result = stmt.Accept(_visitor, 1);
-            Assert.Equal("    return 0", result);
+            Assert.Equal("    return (0)", result);
         }
 
         [Theory]
@@ -368,18 +371,16 @@ namespace AST.Visitors.Tests
         {
             var stmt = new ReturnStmt(new LiteralNode(1));
             string result = stmt.Accept(_visitor, level);
-            Assert.Equal(expectedIndent + "return 1", result);
+            Assert.Equal(expectedIndent + "return (1)", result);
         }
 
-        // =========================================================================
-        //  SECTION 8 — BlockStmt tests
-        // =========================================================================
+        #endregion
+
+        #region BlockStmt Tests
 
         [Fact]
         public void Block_Empty()
         {
-            // {
-            // }
             var block = new BlockStmt(new SymbolTable<string, object>());
             string result = block.Accept(_visitor, 0);
             Assert.Equal("{\n}", result);
@@ -388,72 +389,50 @@ namespace AST.Visitors.Tests
         [Fact]
         public void Block_SingleAssignment()
         {
-            // {
-            //     x := 5
-            // }
             var block = new BlockStmt(new SymbolTable<string, object>());
             block.Add(new AssignmentStmt(new VariableNode("x"), new LiteralNode(5)));
             string result = block.Accept(_visitor, 0);
-            Assert.Equal("{\n    x := 5\n}", result);
+            Assert.Equal("{\n    x := (5)\n}", result);
         }
 
         [Fact]
         public void Block_SingleReturn()
         {
-            // {
-            //     return 0
-            // }
             var block = new BlockStmt(new SymbolTable<string, object>());
             block.Add(new ReturnStmt(new LiteralNode(0)));
             string result = block.Accept(_visitor, 0);
-            Assert.Equal("{\n    return 0\n}", result);
+            Assert.Equal("{\n    return (0)\n}", result);
         }
 
         [Fact]
         public void Block_MultipleStatements()
         {
-            // {
-            //     x := 1
-            //     y := 2
-            //     return (x + y)
-            // }
             var block = new BlockStmt(new SymbolTable<string, object>());
             block.Add(new AssignmentStmt(new VariableNode("x"), new LiteralNode(1)));
             block.Add(new AssignmentStmt(new VariableNode("y"), new LiteralNode(2)));
             block.Add(new ReturnStmt(new PlusNode(new VariableNode("x"), new VariableNode("y"))));
 
-            string expected = "{\n    x := 1\n    y := 2\n    return (x + y)\n}";
+            string expected = "{\n    x := (1)\n    y := (2)\n    return (x + y)\n}";
             Assert.Equal(expected, block.Accept(_visitor, 0));
         }
 
         [Fact]
         public void Block_NestedBlock()
         {
-            // {
-            //     {
-            //         x := 1
-            //     }
-            // }
             var inner = new BlockStmt(new SymbolTable<string, object>());
             inner.Add(new AssignmentStmt(new VariableNode("x"), new LiteralNode(1)));
 
             var outer = new BlockStmt(new SymbolTable<string, object>());
             outer.Add(inner);
 
-            string expected = "{\n    {\n        x := 1\n    }\n}";
+            string expected = "{\n    {\n        x := (1)\n    }\n}";
             Assert.Equal(expected, outer.Accept(_visitor, 0));
         }
 
         [Fact]
         public void Block_DoubleNestedBlock()
         {
-            // {
-            //     {
-            //         {
-            //             return 99
-            //         }
-            //     }
-            // }
+            // Three levels of nested blocks with a return in the innermost
             var innermost = new BlockStmt(new SymbolTable<string, object>());
             innermost.Add(new ReturnStmt(new LiteralNode(99)));
 
@@ -467,7 +446,7 @@ namespace AST.Visitors.Tests
                 "{\n" +
                 "    {\n" +
                 "        {\n" +
-                "            return 99\n" +
+                "            return (99)\n" +
                 "        }\n" +
                 "    }\n" +
                 "}";
@@ -477,25 +456,19 @@ namespace AST.Visitors.Tests
         [Fact]
         public void Block_AtIndentLevel1()
         {
-            // Starting the block at level 1 means the braces get 4 spaces,
+            // Starting the block at level 1 means braces get 4 spaces,
             // and inner statements get 8 spaces.
             var block = new BlockStmt(new SymbolTable<string, object>());
             block.Add(new AssignmentStmt(new VariableNode("a"), new LiteralNode(7)));
 
-            string expected = "    {\n        a := 7\n    }";
+            string expected = "    {\n        a := (7)\n    }";
             Assert.Equal(expected, block.Accept(_visitor, 1));
         }
 
         [Fact]
         public void Block_MixedStatementsAndNestedBlock()
         {
-            // {
-            //     x := 10
-            //     {
-            //         y := (x + 1)
-            //         return y
-            //     }
-            // }
+            // Outer block with an assignment, nested block, and no return
             var inner = new BlockStmt(new SymbolTable<string, object>());
             inner.Add(new AssignmentStmt(
                 new VariableNode("y"),
@@ -508,27 +481,24 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    x := 10\n" +
+                "    x := (10)\n" +
                 "    {\n" +
                 "        y := (x + 1)\n" +
-                "        return y\n" +
+                "        return (y)\n" +
                 "    }\n" +
                 "}";
             Assert.Equal(expected, outer.Accept(_visitor, 0));
         }
 
-        // =========================================================================
-        //  SECTION 9 — Block with complex expressions
-        // =========================================================================
+        #endregion
+
+        #region Block with Complex Expressions
 
         [Fact]
         public void Block_AssignmentWithComplexExpression()
         {
-            // {
-            //     result := ((a * b) + (c / d))
-            // }
-            var mul  = new TimesNode(new VariableNode("a"), new VariableNode("b"));
-            var div  = new FloatDivNode(new VariableNode("c"), new VariableNode("d"));
+            var mul = new TimesNode(new VariableNode("a"), new VariableNode("b"));
+            var div = new FloatDivNode(new VariableNode("c"), new VariableNode("d"));
             var expr = new PlusNode(mul, div);
 
             var block = new BlockStmt(new SymbolTable<string, object>());
@@ -541,10 +511,7 @@ namespace AST.Visitors.Tests
         [Fact]
         public void Block_ReturnWithModulusAndIntDiv()
         {
-            // {
-            //     return ((n % 2) // 1)
-            // }
-            var mod    = new ModulusNode(new VariableNode("n"), new LiteralNode(2));
+            var mod = new ModulusNode(new VariableNode("n"), new LiteralNode(2));
             var intdiv = new IntDivNode(mod, new LiteralNode(1));
 
             var block = new BlockStmt(new SymbolTable<string, object>());
@@ -554,9 +521,9 @@ namespace AST.Visitors.Tests
             Assert.Equal(expected, block.Accept(_visitor, 0));
         }
 
-        // =========================================================================
-        //  SECTION 10 — Multiple sequential assignments
-        // =========================================================================
+        #endregion
+
+        #region Multiple Sequential Assignments
 
         [Theory]
         [InlineData(1)]
@@ -576,9 +543,9 @@ namespace AST.Visitors.Tests
             Assert.Equal(n + 2, lineCount);
         }
 
-        // =========================================================================
-        //  SECTION 11 — Edge case: very deep nesting
-        // =========================================================================
+        #endregion
+
+        #region Edge Case — Deep Nesting Indentation
 
         [Fact]
         public void Block_ThreeLevelsDeep_IndentationCorrect()
@@ -600,24 +567,19 @@ namespace AST.Visitors.Tests
             // Verify key indentation properties
             Assert.StartsWith("{", result);
             Assert.EndsWith("}", result);
-            Assert.Contains("    x := 1", result);          // level 1 indent
-            Assert.Contains("        y := 2", result);      // level 2 indent
-            Assert.Contains("            z := 3", result);  // level 3 indent
+            Assert.Contains("    x := (1)", result);          // level 1 indent
+            Assert.Contains("        y := (2)", result);      // level 2 indent
+            Assert.Contains("            z := (3)", result);  // level 3 indent
         }
 
-        // =========================================================================
-        //  SECTION 12 — Full-program integration test
-        // =========================================================================
+        #endregion
+
+        #region Full-Program Integration Tests
 
         [Fact]
         public void FullProgram_AssignComputeReturn()
         {
-            // {
-            //     a := 10
-            //     b := 20
-            //     sum := (a + b)
-            //     return sum
-            // }
+            // Full program: assign, compute, return
             var block = new BlockStmt(new SymbolTable<string, object>());
             block.Add(new AssignmentStmt(new VariableNode("a"), new LiteralNode(10)));
             block.Add(new AssignmentStmt(new VariableNode("b"), new LiteralNode(20)));
@@ -628,10 +590,10 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    a := 10\n" +
-                "    b := 20\n" +
+                "    a := (10)\n" +
+                "    b := (20)\n" +
                 "    sum := (a + b)\n" +
-                "    return sum\n" +
+                "    return (sum)\n" +
                 "}";
             Assert.Equal(expected, block.Accept(_visitor, 0));
         }
@@ -639,16 +601,7 @@ namespace AST.Visitors.Tests
         [Fact]
         public void FullProgram_NestedScopes()
         {
-            // {
-            //     x := 1
-            //     {
-            //         y := (x + 1)
-            //         {
-            //             z := (y * 2)
-            //             return z
-            //         }
-            //     }
-            // }
+            // Nested scopes with assignments at each level
             var innermost = new BlockStmt(new SymbolTable<string, object>());
             innermost.Add(new AssignmentStmt(
                 new VariableNode("z"),
@@ -667,16 +620,18 @@ namespace AST.Visitors.Tests
 
             string expected =
                 "{\n" +
-                "    x := 1\n" +
+                "    x := (1)\n" +
                 "    {\n" +
                 "        y := (x + 1)\n" +
                 "        {\n" +
                 "            z := (y * 2)\n" +
-                "            return z\n" +
+                "            return (z)\n" +
                 "        }\n" +
                 "    }\n" +
                 "}";
             Assert.Equal(expected, outer.Accept(_visitor, 0));
         }
+
+        #endregion
     }
 }

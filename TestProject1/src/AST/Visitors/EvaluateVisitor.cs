@@ -10,12 +10,7 @@ namespace AST
     /// <summary>
     /// Exception thrown when an evaluation error occurs
     /// </summary>
-    public class EvaluationException : Exception
-    {
-        public EvaluationException(string message) : base(message)
-        {
-        }
-    }
+    public class EvaluationException(string message) : Exception(message) { }
 
     /// <summary>
     /// Visitor that evaluates an AST, executing the program and returning the final value
@@ -155,7 +150,7 @@ namespace AST
             // Use this block's symbol table, which is already linked to its parent
             SymbolTable<string, object> currentScope = node.SymbolTable;
             // TODO
-            foreach(Statement s in node.Statements)
+            foreach (Statement s in node.Statements)
             {
                 s.Accept(this, currentScope);
                 if (_returnEncountered) return _returnValue;

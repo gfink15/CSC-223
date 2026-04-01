@@ -164,42 +164,12 @@ public class EvaluateVisitorTest
         //Assert.Equal("Division by zero", ex.Message);
     }
 
-    // -------------------------------------------------------------------------
-    // ModulusNode
-    // -------------------------------------------------------------------------
-
-    // [Theory]
-    // [InlineData(10, 3, 1)]
-    // [InlineData(9, 3, 0)]
-    // [InlineData(-10, 3, -1)]
-    // [InlineData(0, 5, 0)]
-    // public void Visit_ModulusNode_IntMod(int left, int right, int expected)
-    // {
-    //     var node = new ModulusNode(new LiteralNode(left), new LiteralNode(right));
-    //     Assert.Equal(expected, node.Accept(_visitor, _table));
-    // }
-
     [Fact]
     public void Visit_ModulusNode_ByZeroThrows()
     {
         var node = new ModulusNode(new LiteralNode(10), new LiteralNode(0));
         Assert.Throws<EvaluationException>(() => node.Accept(_visitor, _table));
     }
-
-    // -------------------------------------------------------------------------
-    // ExponentiationNode
-    // -------------------------------------------------------------------------
-
-    // [Theory]
-    // [InlineData(2, 10, 1024)]
-    // [InlineData(5, 0, 1)]
-    // [InlineData(3, 3, 27)]
-    // [InlineData(1, 100, 1)]
-    // public void Visit_ExponentiationNode_IntPow(int baseVal, int exp, int expected)
-    // {
-    //     var node = new ExponentiationNode(new LiteralNode(baseVal), new LiteralNode(exp));
-    //     Assert.Equal(expected, node.Accept(_visitor, _table));
-    // }
 
     [Fact]
     public void Visit_ExponentiationNode_NegativeExponent_ReturnsDouble()
@@ -238,103 +208,7 @@ public class EvaluateVisitorTest
         stmt.Accept(_visitor, _table);
         Assert.Equal(999, _table["z"]);
     }
-
-    // [Fact]
-    // public void Visit_AssignmentStmt_ExpressionIsEvaluated()
-    // {
-    //     // z := 3 + 4  =>  z == 7
-    //     var stmt = new AssignmentStmt(new VariableNode("z"),
-    //         new PlusNode(new LiteralNode(3), new LiteralNode(4)));
-    //     stmt.Accept(_visitor, _table);
-    //     Assert.Equal(7, _table["z"]);
-    // }
-
-    // -------------------------------------------------------------------------
-    // ReturnStmt
-    // -------------------------------------------------------------------------
-
-    // [Fact]
-    // public void Visit_ReturnStmt_ReturnsCorrectValue()
-    // {
-    //     var stmt = new ReturnStmt(new LiteralNode(55));
-    //     var result = stmt.Accept(_visitor, _table);
-    //     Assert.Equal(55, result);
-    // }
-
-    // [Fact]
-    // public void Visit_ReturnStmt_HaltsBlockExecution()
-    // {
-    //     // Only the return should run; the subsequent assignment must not execute.
-    //     var block = new BlockStmt(new SymbolTable<>
-    //     {
-    //         new ReturnStmt(new LiteralNode(1)),
-    //         new AssignmentStmt(new VariableNode("sideEffect"), new LiteralNode(99))
-    //     });
-    //     var result = block.Accept(_visitor, _table);
-    //     Assert.Equal(1, result);
-    //     Assert.False(_table.ContainsKey("sideEffect"));
-    // }
-
-    // -------------------------------------------------------------------------
-    // BlockStmt — scope and last-statement semantics
-    // -------------------------------------------------------------------------
-
-    // [Fact]
-    // public void Visit_BlockStmt_ReturnsLastStatementValue()
-    // {
-    //     var block = new BlockStmt(new List<Statement>
-    //     {
-    //         new AssignmentStmt("a", new LiteralNode(10)),
-    //         new AssignmentStmt("b", new LiteralNode(20))
-    //     });
-    //     var result = block.Accept(_visitor, _table);
-    //     Assert.Equal(20, result);
-    // }
-
-    // [Fact]
-    // public void Visit_BlockStmt_VariablesShadowedInInnerScope()
-    // {
-    //     // Outer: x = 1. Inner block: x = 2. After inner block, outer x should still be 1.
-    //     _table["x"] = 1;
-    //     var inner = new BlockStmt(new List<Statement>
-    //     {
-    //         new AssignmentStmt("x", new LiteralNode(2))
-    //     });
-    //     var outer = new BlockStmt(new List<Statement> { inner });
-    //     outer.Accept(_visitor, _table);
-    //     Assert.Equal(1, _table["x"]);
-    // }
-
-    // [Fact]
-    // public void Visit_BlockStmt_EmptyBlockReturnsNull()
-    // {
-    //     var block = new BlockStmt(new List<Statement>());
-    //     var result = block.Accept(_visitor, _table);
-    //     Assert.Null(result);
-    // }
-
-    // [Fact]
-    // public void Visit_BlockStmt_ReturnPropagatesThroughNesting()
-    // {
-    //     var inner = new BlockStmt(new List<Statement>
-    //     {
-    //         new ReturnStmt(new LiteralNode(77))
-    //     });
-    //     var outer = new BlockStmt(new List<Statement>
-    //     {
-    //         inner,
-    //         new AssignmentStmt("neverRuns", new LiteralNode(0))
-    //     });
-    //     var result = outer.Accept(_visitor, _table);
-    //     Assert.Equal(77, result);
-    //     Assert.False(_table.ContainsKey("neverRuns"));
-    // }
 }
-
-/// <summary>
-/// Integration tests for EvaluateVisitor — parses a complete DEC source string
-/// and evaluates the resulting BlockStmt AST.
-/// </summary>
 public class EvaluateTest
 {
     private readonly EvaluateVisitor _evaluator;

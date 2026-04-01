@@ -9,7 +9,12 @@ namespace AST
     /// <summary>
     /// Exception thrown when an evaluation error occurs
     /// </summary>
-    public class EvaluationException(string message) : Exception(message) { }
+    public class EvaluationException : Exception
+    {
+        public EvaluationException(string message) : base(message)
+        {
+        }
+    }
 
     /// <summary>
     /// Visitor that evaluates an AST, executing the program and returning the final value
@@ -149,6 +154,10 @@ namespace AST
             SymbolTable<string, object> currentScope = node.SymbolTable;
 
             // TODO
+            foreach(Statement s in node.Statements)
+            {
+                if (s is AssignmentStmt) currentScope.Add(s.Accept<SymbolTable<string, object>, object>(this, currentScope));
+            }
         }
 
         #endregion

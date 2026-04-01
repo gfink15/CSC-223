@@ -10,12 +10,7 @@ namespace AST
     /// <summary>
     /// Exception thrown when an evaluation error occurs
     /// </summary>
-    public class NameAnalysisException : Exception
-    {
-        public NameAnalysisException(string message) : base(message)
-        {
-        }
-    }
+    public class NameAnalysisException(string message) : Exception(message) { }
 
     /// <summary>
     /// Visitor that evaluates an AST, executing the program and returning the final value
@@ -156,8 +151,7 @@ namespace AST
             }
             else
             {
-                var _evaluater = new EvaluateVisitor();
-                _evaluater.Visit(statement, tuple.Item1);
+                tuple.Item1[statement.Variable.Name] = 0;
                 return true;
             }
 
@@ -167,21 +161,13 @@ namespace AST
         {
             bool error = !statement.Expression.Accept(this, new Tuple<SymbolTable<string, object>, Statement>(tuple.Item1, statement));
 
-            if (error)
-            {
-                return false;
-            }
-            else
-            {
-                // Do we need to care about the rest ot the program if we encounter a return statement?
-                return true;
-            }
+            if (error) return false;
+            else return true;
 
         }
 
         public bool Visit(BlockStmt statement, Tuple<SymbolTable<string, object>, Statement> tuple)
         {
-            // Should we stop as soon as error?
             var symbolTable = new SymbolTable<string, object>(tuple.Item1);
             bool error = false;
 

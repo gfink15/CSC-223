@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using AST;
 using Utilities.Containers;
@@ -137,27 +138,29 @@ namespace AST
 
         public object Visit(AssignmentStmt node, SymbolTable<string, object> symbolTable)
         {
-            symbolTable[node.Variable.Name] = node.Expression.Accept(this, symbolTable);
-
+            _returnValue = node.Expression.Accept(this, symbolTable);
+            symbolTable[node.Variable.Name] = _returnValue;
+            return null;
         }
 
         public object Visit(ReturnStmt node, SymbolTable<string, object> symbolTable)
         {
             _returnEncountered = true;
             _returnValue = node.Expression.Accept(this, symbolTable);
-            return _returnValue;
+            return null;
         }
 
         public object Visit(BlockStmt node, SymbolTable<string, object> symbolTable)
         {
             // Use this block's symbol table, which is already linked to its parent
             SymbolTable<string, object> currentScope = node.SymbolTable;
-
             // TODO
             foreach(Statement s in node.Statements)
             {
-                if (s is AssignmentStmt) currentScope.Add(s.Accept<SymbolTable<string, object>, object>(this, currentScope));
+                s.Accept(this, currentScope);
+                if (_returnEncountered) return _returnValue;
             }
+            return _returnValue;
         }
 
         #endregion

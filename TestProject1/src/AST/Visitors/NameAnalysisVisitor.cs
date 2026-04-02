@@ -42,6 +42,16 @@ namespace AST
         private List<string> _error_messages;
 
         /// <summary>
+        /// Public read-only access to the list of statements that caused errors.
+        /// </summary>
+        public List<Statement> ErrorStatements { get { return _error_stataments; } }
+
+        /// <summary>
+        /// Public read-only access to the list of error messages.
+        /// </summary>
+        public List<string> ErrorMessages { get { return _error_messages; } }
+
+        /// <summary>
         /// Initializes a new NameAnalysisVisitor with empty error lists.
         /// </summary>
         public NameAnalysisVisitor()
@@ -98,16 +108,10 @@ namespace AST
         /// <returns><c>true</c> when both operands pass analysis; otherwise <c>false</c>.</returns>
         public bool Visit(PlusNode node, Tuple<SymbolTable<string, object>, Statement> tuple)
         {
-            // Both sides must be valid because either side may reference variables.
-            if (node.Left.Accept(this, tuple) && node.Right.Accept(this, tuple))
-            {
-                return true;
-            }
-            else
-            {
-                // Return failure when any operand fails analysis.
-                return false;
-            }
+            // Evaluate both sides independently to collect all errors (no short-circuit).
+            bool left = node.Left.Accept(this, tuple);
+            bool right = node.Right.Accept(this, tuple);
+            return left & right;
         }
 
         /// <summary>
@@ -118,16 +122,10 @@ namespace AST
         /// <returns><c>true</c> when both operands pass analysis; otherwise <c>false</c>.</returns>
         public bool Visit(MinusNode node, Tuple<SymbolTable<string, object>, Statement> tuple)
         {
-            // Analyze the left and right expression subtrees recursively.
-            if (node.Left.Accept(this, tuple) && node.Right.Accept(this, tuple))
-            {
-                return true;
-            }
-            else
-            {
-                // Any unresolved name in either subtree propagates failure upward.
-                return false;
-            }
+            // Evaluate both sides independently to collect all errors (no short-circuit).
+            bool left = node.Left.Accept(this, tuple);
+            bool right = node.Right.Accept(this, tuple);
+            return left & right;
         }
 
         /// <summary>
@@ -142,16 +140,10 @@ namespace AST
         /// </summary>
         public bool Visit(TimesNode node, Tuple<SymbolTable<string, object>, Statement> tuple)
         {
-            // Require successful analysis for both factors.
-            if (node.Left.Accept(this, tuple) && node.Right.Accept(this, tuple))
-            {
-                return true;
-            }
-            else
-            {
-                // Multiplication is invalid if either side contains unresolved names.
-                return false;
-            }
+            // Evaluate both sides independently to collect all errors (no short-circuit).
+            bool left = node.Left.Accept(this, tuple);
+            bool right = node.Right.Accept(this, tuple);
+            return left & right;
         }
 
         /// <summary>
@@ -162,16 +154,10 @@ namespace AST
         /// <returns><c>true</c> when both operands pass analysis; otherwise <c>false</c>.</returns>
         public bool Visit(FloatDivNode node, Tuple<SymbolTable<string, object>, Statement> tuple)
         {
-            // Validate each child expression before this operator is considered valid.
-            if (node.Left.Accept(this, tuple) && node.Right.Accept(this, tuple))
-            {
-                return true;
-            }
-            else
-            {
-                // Name-analysis failures in descendants are not recovered here.
-                return false;
-            }
+            // Evaluate both sides independently to collect all errors (no short-circuit).
+            bool left = node.Left.Accept(this, tuple);
+            bool right = node.Right.Accept(this, tuple);
+            return left & right;
         }
 
         /// <summary>
@@ -182,16 +168,10 @@ namespace AST
         /// <returns><c>true</c> when both operands pass analysis; otherwise <c>false</c>.</returns>
         public bool Visit(IntDivNode node, Tuple<SymbolTable<string, object>, Statement> tuple)
         {
-            // Division operands are analyzed exactly like other binary expressions.
-            if (node.Left.Accept(this, tuple) && node.Right.Accept(this, tuple))
-            {
-                return true;
-            }
-            else
-            {
-                // Return immediately when any nested variable lookup fails.
-                return false;
-            }
+            // Evaluate both sides independently to collect all errors (no short-circuit).
+            bool left = node.Left.Accept(this, tuple);
+            bool right = node.Right.Accept(this, tuple);
+            return left & right;
         }
 
         /// <summary>
@@ -202,16 +182,10 @@ namespace AST
         /// <returns><c>true</c> when both operands pass analysis; otherwise <c>false</c>.</returns>
         public bool Visit(ModulusNode node, Tuple<SymbolTable<string, object>, Statement> tuple)
         {
-            // Check each side for unresolved variable names.
-            if (node.Left.Accept(this, tuple) && node.Right.Accept(this, tuple))
-            {
-                return true;
-            }
-            else
-            {
-                // The operator itself performs no recovery; propagate failure.
-                return false;
-            }
+            // Evaluate both sides independently to collect all errors (no short-circuit).
+            bool left = node.Left.Accept(this, tuple);
+            bool right = node.Right.Accept(this, tuple);
+            return left & right;
         }
 
         /// <summary>
@@ -222,16 +196,10 @@ namespace AST
         /// <returns><c>true</c> when both operands pass analysis; otherwise <c>false</c>.</returns>
         public bool Visit(ExponentiationNode node, Tuple<SymbolTable<string, object>, Statement> tuple)
         {
-            // Analyze base and exponent expressions recursively.
-            if (node.Left.Accept(this, tuple) && node.Right.Accept(this, tuple))
-            {
-                return true;
-            }
-            else
-            {
-                // Preserve a simple pass/fail contract for parent nodes.
-                return false;
-            }
+            // Evaluate both sides independently to collect all errors (no short-circuit).
+            bool left = node.Left.Accept(this, tuple);
+            bool right = node.Right.Accept(this, tuple);
+            return left & right;
         }
 
         #endregion

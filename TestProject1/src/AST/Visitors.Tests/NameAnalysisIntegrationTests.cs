@@ -3,6 +3,8 @@
 // Parses DEC source strings into ASTs via the Parser, then runs the
 // NameAnalysisVisitor on the resulting BlockStmt to verify correct
 // declaration checking across nested scopes.
+// Also verifies that the visitor's ErrorStatements and ErrorMessages
+// lists are populated correctly for invalid programs.
 //
 // Bugs: None known.
 //
@@ -20,16 +22,17 @@ namespace AST.Visitors.Tests
     public class NameAnalysisIntegrationTests
     {
         /// <summary>
-        /// Parses the program and runs name analysis.
-        /// Returns true if no undeclared variables are found.
+        /// Parses the program, runs name analysis, and returns the visitor
+        /// so tests can inspect both the pass/fail result and the error lists.
         /// </summary>
-        private bool ParseAndAnalyze(string program)
+        private (bool result, NameAnalysisVisitor visitor) ParseAndAnalyze(string program)
         {
             var visitor = new NameAnalysisVisitor();
             BlockStmt ast = Parser.Parser.Parse(program);
             var scope = new SymbolTable<string, object>();
             var tuple = new Tuple<SymbolTable<string, object>, Statement>(scope, ast);
-            return ast.Accept(visitor, tuple);
+            bool result = ast.Accept(visitor, tuple);
+            return (result, visitor);
         }
 
         // =====================================================================
@@ -45,7 +48,10 @@ namespace AST.Visitors.Tests
                 x := (10)
                 return (x)
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -57,7 +63,10 @@ namespace AST.Visitors.Tests
                 c := (a + b)
                 return (c)
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -66,7 +75,10 @@ namespace AST.Visitors.Tests
             string program = @"{
                 return (42)
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -84,7 +96,10 @@ namespace AST.Visitors.Tests
                 i := (a ** b)
                 return (i)
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -96,7 +111,10 @@ namespace AST.Visitors.Tests
                 z := (y * 2)
                 return (z)
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -109,20 +127,26 @@ namespace AST.Visitors.Tests
                 d := (((a + b) * c) - (a ** b))
                 return (d)
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
         public void Valid_EmptyBlock()
         {
             string program = "{\n}";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         #endregion
 
         // =====================================================================
-        //  Invalid Programs — Should Fail
+        //  Invalid Programs — Should Fail with Error Details
         // =====================================================================
 
         #region Invalid Programs
@@ -133,10 +157,13 @@ namespace AST.Visitors.Tests
             string program = @"{
                 return (x)
             }";
-            Assert.False(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.False(result);
+            Assert.Single(visitor.ErrorStatements);
+            Assert.Single(visitor.ErrorMessages);
+            Assert.IsType<ReturnStmt>(visitor.ErrorStatements[0]);
+            Assert.Contains("x", visitor.ErrorMessages[0]);
         }
-
-
 
         [Fact]
         public void Invalid_UndeclaredInExpression()
@@ -145,7 +172,12 @@ namespace AST.Visitors.Tests
                 a := (1)
                 b := (a + missing)
             }";
-            Assert.False(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.False(result);
+            Assert.Single(visitor.ErrorStatements);
+            Assert.Single(visitor.ErrorMessages);
+            Assert.IsType<AssignmentStmt>(visitor.ErrorStatements[0]);
+            Assert.Contains("missing", visitor.ErrorMessages[0]);
         }
 
         [Fact]
@@ -155,16 +187,59 @@ namespace AST.Visitors.Tests
                 a := (1)
                 b := (((a + c) * 2) - 1)
             }";
-            Assert.False(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.False(result);
+            Assert.Single(visitor.ErrorStatements);
+            Assert.Single(visitor.ErrorMessages);
+            Assert.IsType<AssignmentStmt>(visitor.ErrorStatements[0]);
+            Assert.Contains("c", visitor.ErrorMessages[0]);
         }
 
         [Fact]
         public void Invalid_AllUndeclared()
         {
+            // x and y are both undeclared on the RHS of z := (x + y)
             string program = @"{
                 z := (x + y)
             }";
-            Assert.False(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.False(result);
+            // Both x and y should produce an error
+            Assert.Equal(2, visitor.ErrorStatements.Count);
+            Assert.Equal(2, visitor.ErrorMessages.Count);
+            Assert.Contains("x", visitor.ErrorMessages[0]);
+            Assert.Contains("y", visitor.ErrorMessages[1]);
+        }
+
+        [Fact]
+        public void Invalid_MultipleStatementsWithErrors()
+        {
+            // Two separate statements each use an undeclared variable
+            string program = @"{
+                a := (foo)
+                b := (bar)
+            }";
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.False(result);
+            // Each statement has one undeclared variable
+            Assert.Equal(2, visitor.ErrorStatements.Count);
+            Assert.Equal(2, visitor.ErrorMessages.Count);
+            Assert.Contains("foo", visitor.ErrorMessages[0]);
+            Assert.Contains("bar", visitor.ErrorMessages[1]);
+        }
+
+        [Fact]
+        public void Invalid_ErrorMessageContainsVariableName()
+        {
+            string program = @"{
+                return (nope)
+            }";
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.False(result);
+            // Verify the error message mentions the undeclared variable name
+            Assert.Contains("nope", visitor.ErrorMessages[0]);
+            // Verify it mentions "not found" context
+            Assert.Contains("not found", visitor.ErrorMessages[0]);
         }
 
         #endregion
@@ -184,7 +259,10 @@ namespace AST.Visitors.Tests
                     return (x)
                 }
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -197,7 +275,10 @@ namespace AST.Visitors.Tests
                     return (y)
                 }
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -209,7 +290,11 @@ namespace AST.Visitors.Tests
                     y := (z)
                 }
             }";
-            Assert.False(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.False(result);
+            Assert.Single(visitor.ErrorStatements);
+            Assert.Single(visitor.ErrorMessages);
+            Assert.Contains("z", visitor.ErrorMessages[0]);
         }
 
         [Fact]
@@ -225,7 +310,10 @@ namespace AST.Visitors.Tests
                     }
                 }
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -240,7 +328,11 @@ namespace AST.Visitors.Tests
                     }
                 }
             }";
-            Assert.False(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.False(result);
+            Assert.Single(visitor.ErrorStatements);
+            Assert.Single(visitor.ErrorMessages);
+            Assert.Contains("missing", visitor.ErrorMessages[0]);
         }
 
         [Fact]
@@ -256,7 +348,10 @@ namespace AST.Visitors.Tests
                 }
                 return (x)
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -269,7 +364,10 @@ namespace AST.Visitors.Tests
                 }
                 return (x)
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         #endregion
@@ -292,7 +390,10 @@ namespace AST.Visitors.Tests
                     return (d)
                 }
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -306,7 +407,10 @@ namespace AST.Visitors.Tests
                 z := (x + 2)
                 return (z)
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
         }
 
         [Fact]
@@ -317,7 +421,28 @@ namespace AST.Visitors.Tests
                 a := (2)
                 return (a)
             }";
-            Assert.True(ParseAndAnalyze(program));
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
+        }
+
+        [Fact]
+        public void Complex_ErrorsInNestedAndOuterScope()
+        {
+            // Both scopes have undeclared variables
+            string program = @"{
+                a := (oops)
+                {
+                    b := (nah)
+                }
+            }";
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.False(result);
+            Assert.Equal(2, visitor.ErrorStatements.Count);
+            Assert.Equal(2, visitor.ErrorMessages.Count);
+            Assert.Contains("oops", visitor.ErrorMessages[0]);
+            Assert.Contains("nah", visitor.ErrorMessages[1]);
         }
 
         #endregion

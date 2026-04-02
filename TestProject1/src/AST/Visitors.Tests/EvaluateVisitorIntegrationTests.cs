@@ -152,6 +152,18 @@ namespace AST.Visitors.Tests
             Assert.Equal(49, Eval(program));
         }
 
+        [Fact]
+        public void Eval_SelfReferentialReassignment()
+        {
+            // x = x + 1: declare x, then reassign using its own value
+            string program = @"{
+                x := (5)
+                x := (x + 1)
+                return (x)
+            }";
+            Assert.Equal(6, Eval(program));
+        }
+
         #endregion
 
         // =====================================================================

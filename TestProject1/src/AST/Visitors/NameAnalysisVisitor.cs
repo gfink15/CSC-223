@@ -245,8 +245,7 @@ namespace AST
             bool error = !statement.Expression.Accept(this, new Tuple<SymbolTable<string, object>, Statement>(tuple.Item1, statement));
 
             // Return success only when expression analysis succeeds.
-            if (error) return false;
-            else return true;
+            return !error;
 
         }
 

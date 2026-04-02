@@ -47,10 +47,6 @@ namespace AST
             // Clear any stale return value from previous evaluations.
             _returnValue = null;
 
-            // Execute the AST with a null initial scope
-            // (the BlockStmt will use its own symbol table)
-            //ast.Accept(this, null);
-
             // Delegate execution to the root statement node.
             return ast.Accept(this, null);
         }
@@ -72,14 +68,6 @@ namespace AST
             // Variables return their value from the symbol table
             return symbolTable[node.Name];
         }
-
-        // public object Visit(BinaryOperator node, SymbolTable<string, object> symbolTable)
-        // {
-        //     string left = node.Left.Accept(this, symbolTable);
-        //     string right = node.Right.Accept(this, symbolTable);
-        //     string op = node.ToString();
-        //     return $"({left} {op} {right})";
-        // }
 
         /// <summary>
         /// Evaluates an addition expression by evaluating both operands and summing them as doubles.
@@ -256,7 +244,7 @@ namespace AST
         {
             // Use this block's symbol table, which is already linked to its parent
             SymbolTable<string, object> currentScope = node.SymbolTable;
-            // TODO
+
             foreach (Statement s in node.Statements)
             {
                 // Execute statements in order using the block-local scope.

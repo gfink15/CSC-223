@@ -134,6 +134,21 @@ namespace AST.Visitors.Tests
         }
 
         [Fact]
+        public void Valid_SelfReferentialReassignment()
+        {
+            // x = x + 1: x is already declared, so using x on the RHS is valid
+            string program = @"{
+                x := (5)
+                x := (x + 1)
+                return (x)
+            }";
+            var (result, visitor) = ParseAndAnalyze(program);
+            Assert.True(result);
+            Assert.Empty(visitor.ErrorStatements);
+            Assert.Empty(visitor.ErrorMessages);
+        }
+
+        [Fact]
         public void Valid_EmptyBlock()
         {
             string program = "{\n}";

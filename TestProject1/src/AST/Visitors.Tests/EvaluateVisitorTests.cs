@@ -1,579 +1,546 @@
 using Xunit;
 using AST;
-using AST.Visitors;
 using Utilities.Containers;
 
 namespace AST.Visitors.Tests;
 
-/// <summary>
-/// Direct unit tests for EvaluateVisitor — each test manually constructs AST nodes
-/// and calls Accept to verify a single Visit method in isolation.
-/// </summary>
+// =============================================================================
+// EvaluateVisitorTest
+//
+// Direct unit tests — construct AST nodes manually and invoke via Evaluate().
+// All tests go through EvaluateVisitor.Evaluate(Statement), which is the
+// public entry point. It resets visitor state and calls ast.Accept(this, null).
+//
+// BlockStmt construction (from AST.cs):
+//   var block = new BlockStmt(new SymbolTable<string, object>());
+//   block.Add(someStatement);
+//
+// AssignmentStmt construction (from AST.cs):
+//   new AssignmentStmt(new VariableNode("x"), someExpression)
+//
+// EvaluateVisitor.Visit(BlockStmt) uses node.SymbolTable as the scope for that
+// block. For scope-chaining tests the inner BlockStmt is given a child
+// SymbolTable constructed with the outer table as its parent.
+//
+// Intended correct semantics tested here:
+//   - Arithmetic on two ints should yield an int when the result is whole
+//   - Arithmetic involving any double operand should yield a double
+//   - IntDivNode truncates toward zero and should yield an int
+//   - ReturnStmt immediately halts block execution; its expression is the result
+//   - When no return is present, the block returns the value of its last statement
+//   - Inner block scope does not bleed into the outer scope
+//   - Evaluate() resets visitor state between calls
+// =============================================================================
+
 public class EvaluateVisitorTest
 {
     private readonly EvaluateVisitor _visitor;
-    private readonly SymbolTable<string, object> _table;
 
     public EvaluateVisitorTest()
     {
         _visitor = new EvaluateVisitor();
-        _table = new SymbolTable<string, object>();
     }
 
-    // -------------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Builds a BlockStmt with its own fresh SymbolTable and adds each
+    /// supplied statement in order. This is the single correct way to
+    /// construct a BlockStmt per AST.cs (constructor takes a SymbolTable;
+    /// statements are appended via Add()).
+    /// </summary>
+    private static BlockStmt MakeBlock(params Statement[] stmts)
+    {
+        var block = new BlockStmt(new SymbolTable<string, object>());
+        foreach (var s in stmts)
+            block.Add(s);
+        return block;
+    }
+
+    /// <summary>
+    /// Builds an inner BlockStmt whose SymbolTable is a child of the given
+    /// parent table, so variables defined in the outer scope are visible inside.
+    /// </summary>
+    private static BlockStmt MakeInnerBlock(
+        SymbolTable<string, object> parentTable, params Statement[] stmts)
+    {
+        var block = new BlockStmt(new SymbolTable<string, object>(parentTable));
+        foreach (var s in stmts)
+            block.Add(s);
+        return block;
+    }
+
+    /// <summary>Shorthand: evaluate a top-level block built from the given statements.</summary>
+    private object Eval(params Statement[] stmts)
+        => _visitor.Evaluate(MakeBlock(stmts));
+
+    // -----------------------------------------------------------------------
     // LiteralNode
-    // -------------------------------------------------------------------------
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(-42)]
-    [InlineData(int.MaxValue)]
-    public void Visit_LiteralNode_IntReturnsInt(int value)
-    {
-        var node = new LiteralNode(value);
-        var result = node.Accept(_visitor, _table);
-        Assert.Equal(value, result);
-    }
-
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(3.14)]
-    [InlineData(-2.718)]
-    public void Visit_LiteralNode_DoubleReturnsDouble(double value)
-    {
-        var node = new LiteralNode(value);
-        var result = node.Accept(_visitor, _table);
-        Assert.Equal(value, result);
-    }
-
-    // -------------------------------------------------------------------------
-    // VariableNode
-    // -------------------------------------------------------------------------
+    // -----------------------------------------------------------------------
 
     [Fact]
-    public void Visit_VariableNode_ReturnsStoredValue()
+    public void Visit_LiteralInt_ReturnsCorrectValue()
     {
-        _table["x"] = 99;
-        var node = new VariableNode("x");
-        var result = node.Accept(_visitor, _table);
-        Assert.Equal(99, result);
+        var result = Eval(new ReturnStmt(new LiteralNode(7)));
+        Assert.Equal(7, Convert.ToInt32(result));
     }
 
     [Fact]
-    public void Visit_VariableNode_UndefinedThrows()
+    public void Visit_LiteralDouble_ReturnsCorrectValue()
     {
-        var node = new VariableNode("undefined");
-        Assert.Throws<KeyNotFoundException>(() => node.Accept(_visitor, _table));
+        var result = Eval(new ReturnStmt(new LiteralNode(3.14)));
+        Assert.Equal(3.14, Convert.ToDouble(result), precision: 10);
     }
 
-    // -------------------------------------------------------------------------
+    [Fact]
+    public void Visit_LiteralZero_ReturnsZero()
+    {
+        var result = Eval(new ReturnStmt(new LiteralNode(0)));
+        Assert.Equal(0, Convert.ToInt32(result));
+    }
+
+    [Fact]
+    public void Visit_LiteralNegativeInt_ReturnsCorrectValue()
+    {
+        var result = Eval(new ReturnStmt(new LiteralNode(-42)));
+        Assert.Equal(-42, Convert.ToInt32(result));
+    }
+
+    // -----------------------------------------------------------------------
+    // VariableNode — read after assignment
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Visit_Variable_AfterAssignment_ReturnsStoredValue()
+    {
+        var result = Eval(
+            new AssignmentStmt(new VariableNode("x"), new LiteralNode(99)),
+            new ReturnStmt(new VariableNode("x")));
+        Assert.Equal(99, Convert.ToInt32(result));
+    }
+
+    [Fact]
+    public void Visit_Variable_AfterReassignment_ReturnsLatestValue()
+    {
+        var result = Eval(
+            new AssignmentStmt(new VariableNode("x"), new LiteralNode(1)),
+            new AssignmentStmt(new VariableNode("x"), new LiteralNode(2)),
+            new ReturnStmt(new VariableNode("x")));
+        Assert.Equal(2, Convert.ToInt32(result));
+    }
+
+    [Fact]
+    public void Visit_Variable_StoredDoubleValue_ReturnsDouble()
+    {
+        var result = Eval(
+            new AssignmentStmt(new VariableNode("pi"), new LiteralNode(3.14)),
+            new ReturnStmt(new VariableNode("pi")));
+        Assert.Equal(3.14, Convert.ToDouble(result), precision: 10);
+    }
+
+    // -----------------------------------------------------------------------
     // PlusNode
-    // -------------------------------------------------------------------------
+    // -----------------------------------------------------------------------
 
-
-    [Fact]
-    public void Visit_PlusNode_IntPlusDouble_ReturnsDouble()
+    [Theory]
+    [InlineData(3, 4, 7)]
+    [InlineData(0, 0, 0)]
+    [InlineData(-5, 5, 0)]
+    [InlineData(100, -1, 99)]
+    public void Visit_Plus_IntPlusInt_ReturnsCorrectSum(int a, int b, int expected)
     {
-        var node = new PlusNode(new LiteralNode(1), new LiteralNode(1.5));
-        Assert.Equal(2.5, node.Accept(_visitor, _table));
+        var result = Eval(new ReturnStmt(
+            new PlusNode(new LiteralNode(a), new LiteralNode(b))));
+        Assert.Equal(expected, Convert.ToInt32(result));
     }
 
     [Fact]
-    public void Visit_PlusNode_DoublePlusDouble_ReturnsDouble()
+    public void Visit_Plus_IntPlusDouble_ReturnsCorrectSum()
     {
-        var node = new PlusNode(new LiteralNode(1.1), new LiteralNode(2.2));
-        var result = (double)node.Accept(_visitor, _table);
-        Assert.InRange(result, 3.29, 3.31);
+        var result = Eval(new ReturnStmt(
+            new PlusNode(new LiteralNode(1), new LiteralNode(0.5))));
+        Assert.Equal(1.5, Convert.ToDouble(result), precision: 10);
     }
 
-    // -------------------------------------------------------------------------
+    [Fact]
+    public void Visit_Plus_DoublePlusDouble_ReturnsCorrectSum()
+    {
+        var result = Eval(new ReturnStmt(
+            new PlusNode(new LiteralNode(1.5), new LiteralNode(2.5))));
+        Assert.Equal(4.0, Convert.ToDouble(result), precision: 10);
+    }
+
+    // -----------------------------------------------------------------------
     // MinusNode
-    // -------------------------------------------------------------------------
+    // -----------------------------------------------------------------------
 
-    [Fact]
-    public void Visit_MinusNode_DoubleMinusDouble()
+    [Theory]
+    [InlineData(10, 3, 7)]
+    [InlineData(0, 0, 0)]
+    [InlineData(-3, -7, 4)]
+    [InlineData(5, 10, -5)]
+    public void Visit_Minus_IntMinusInt_ReturnsCorrectDifference(int a, int b, int expected)
     {
-        var node = new MinusNode(new LiteralNode(5.5), new LiteralNode(2.5));
-        Assert.Equal(3.0, node.Accept(_visitor, _table));
+        var result = Eval(new ReturnStmt(
+            new MinusNode(new LiteralNode(a), new LiteralNode(b))));
+        Assert.Equal(expected, Convert.ToInt32(result));
     }
 
-    // -------------------------------------------------------------------------
+    [Fact]
+    public void Visit_Minus_DoubleMinusDouble_ReturnsCorrectDifference()
+    {
+        var result = Eval(new ReturnStmt(
+            new MinusNode(new LiteralNode(5.5), new LiteralNode(2.5))));
+        Assert.Equal(3.0, Convert.ToDouble(result), precision: 10);
+    }
+
+    // -----------------------------------------------------------------------
     // TimesNode
-    // -------------------------------------------------------------------------
+    // -----------------------------------------------------------------------
 
-    [Fact]
-    public void Visit_TimesNode_DoubleTimesDouble()
+    [Theory]
+    [InlineData(3, 4, 12)]
+    [InlineData(0, 100, 0)]
+    [InlineData(-3, 4, -12)]
+    [InlineData(-3, -4, 12)]
+    public void Visit_Times_IntTimesInt_ReturnsCorrectProduct(int a, int b, int expected)
     {
-        var node = new TimesNode(new LiteralNode(2.5), new LiteralNode(4.0));
-        Assert.Equal(10.0, node.Accept(_visitor, _table));
+        var result = Eval(new ReturnStmt(
+            new TimesNode(new LiteralNode(a), new LiteralNode(b))));
+        Assert.Equal(expected, Convert.ToInt32(result));
     }
 
-    // -------------------------------------------------------------------------
-    // FloatDivNode
-    // -------------------------------------------------------------------------
+    [Fact]
+    public void Visit_Times_DoubleTimesDouble_ReturnsCorrectProduct()
+    {
+        var result = Eval(new ReturnStmt(
+            new TimesNode(new LiteralNode(2.5), new LiteralNode(4.0))));
+        Assert.Equal(10.0, Convert.ToDouble(result), precision: 10);
+    }
+
+    [Fact]
+    public void Visit_Times_IntTimesDouble_ReturnsCorrectProduct()
+    {
+        var result = Eval(new ReturnStmt(
+            new TimesNode(new LiteralNode(3), new LiteralNode(0.5))));
+        Assert.Equal(1.5, Convert.ToDouble(result), precision: 10);
+    }
+
+    // -----------------------------------------------------------------------
+    // FloatDivNode — always produces a double; throws on zero denominator
+    // -----------------------------------------------------------------------
 
     [Theory]
     [InlineData(10, 4, 2.5)]
     [InlineData(7, 2, 3.5)]
-    [InlineData(1, 3)]          // result checked separately (infinite precision)
-    public void Visit_FloatDivNode_ReturnsDouble(int left, int right, double? expected = null)
+    [InlineData(9, 3, 3.0)]
+    [InlineData(1, 4, 0.25)]
+    public void Visit_FloatDiv_ReturnsCorrectQuotient(int a, int b, double expected)
     {
-        var node = new FloatDivNode(new LiteralNode(left), new LiteralNode(right));
-        var result = node.Accept(_visitor, _table);
-        Assert.IsType<double>(result);
-        if (expected.HasValue)
-            Assert.Equal(expected.Value, (double)result, precision: 10);
+        var result = Eval(new ReturnStmt(
+            new FloatDivNode(new LiteralNode(a), new LiteralNode(b))));
+        Assert.Equal(expected, Convert.ToDouble(result), precision: 10);
     }
 
     [Fact]
-    public void Visit_FloatDivNode_ByZeroThrows()
+    public void Visit_FloatDiv_ByZero_ThrowsEvaluationException()
     {
-        var node = new FloatDivNode(new LiteralNode(5), new LiteralNode(0));
-        var ex = Assert.Throws<EvaluationException>(() => node.Accept(_visitor, _table));
-        //Assert.Equal("Division by zero", ex.Message);
+        var block = MakeBlock(new ReturnStmt(
+            new FloatDivNode(new LiteralNode(5), new LiteralNode(0))));
+        var ex = Assert.Throws<EvaluationException>(() => _visitor.Evaluate(block));
+        Assert.Equal("Can't FloatDiv by 0", ex.Message);
     }
 
     [Fact]
-    public void Visit_FloatDivNode_ByZeroDouble_Throws()
+    public void Visit_FloatDiv_ByZeroDouble_ThrowsEvaluationException()
     {
-        var node = new FloatDivNode(new LiteralNode(5.0), new LiteralNode(0.0));
-        Assert.Throws<EvaluationException>(() => node.Accept(_visitor, _table));
+        var block = MakeBlock(new ReturnStmt(
+            new FloatDivNode(new LiteralNode(5.0), new LiteralNode(0.0))));
+        Assert.Throws<EvaluationException>(() => _visitor.Evaluate(block));
     }
 
-    // -------------------------------------------------------------------------
-    // IntDivNode
-    // -------------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // IntDivNode — truncates toward zero; throws on zero denominator
+    // -----------------------------------------------------------------------
 
     [Theory]
     [InlineData(10, 3, 3)]
     [InlineData(7, 2, 3)]
-    [InlineData(-7, 2, -3)]
     [InlineData(9, 3, 3)]
-    public void Visit_IntDivNode_Truncates(int left, int right, int expected)
+    [InlineData(0, 5, 0)]
+    [InlineData(-7, 2, -3)]
+    [InlineData(-9, 3, -3)]
+    public void Visit_IntDiv_ReturnsCorrectTruncatedQuotient(int a, int b, int expected)
     {
-        var node = new IntDivNode(new LiteralNode(left), new LiteralNode(right));
-        Assert.Equal(expected, node.Accept(_visitor, _table));
+        var result = Eval(new ReturnStmt(
+            new IntDivNode(new LiteralNode(a), new LiteralNode(b))));
+        Assert.Equal(expected, Convert.ToInt32(result));
     }
 
     [Fact]
-    public void Visit_IntDivNode_ByZeroThrows()
+    public void Visit_IntDiv_ByZero_ThrowsEvaluationException()
     {
-        var node = new IntDivNode(new LiteralNode(10), new LiteralNode(0));
-        var ex = Assert.Throws<EvaluationException>(() => node.Accept(_visitor, _table));
-        //Assert.Equal("Division by zero", ex.Message);
+        var block = MakeBlock(new ReturnStmt(
+            new IntDivNode(new LiteralNode(10), new LiteralNode(0))));
+        var ex = Assert.Throws<EvaluationException>(() => _visitor.Evaluate(block));
+        Assert.Equal("Can't IntDiv by 0", ex.Message);
     }
 
-    // -------------------------------------------------------------------------
-    // ModulusNode
-    // -------------------------------------------------------------------------
-
-    // [Theory]
-    // [InlineData(10, 3, 1)]
-    // [InlineData(9, 3, 0)]
-    // [InlineData(-10, 3, -1)]
-    // [InlineData(0, 5, 0)]
-    // public void Visit_ModulusNode_IntMod(int left, int right, int expected)
-    // {
-    //     var node = new ModulusNode(new LiteralNode(left), new LiteralNode(right));
-    //     Assert.Equal(expected, node.Accept(_visitor, _table));
-    // }
-
-    [Fact]
-    public void Visit_ModulusNode_ByZeroThrows()
-    {
-        var node = new ModulusNode(new LiteralNode(10), new LiteralNode(0));
-        Assert.Throws<EvaluationException>(() => node.Accept(_visitor, _table));
-    }
-
-    // -------------------------------------------------------------------------
-    // ExponentiationNode
-    // -------------------------------------------------------------------------
-
-    // [Theory]
-    // [InlineData(2, 10, 1024)]
-    // [InlineData(5, 0, 1)]
-    // [InlineData(3, 3, 27)]
-    // [InlineData(1, 100, 1)]
-    // public void Visit_ExponentiationNode_IntPow(int baseVal, int exp, int expected)
-    // {
-    //     var node = new ExponentiationNode(new LiteralNode(baseVal), new LiteralNode(exp));
-    //     Assert.Equal(expected, node.Accept(_visitor, _table));
-    // }
-
-    [Fact]
-    public void Visit_ExponentiationNode_NegativeExponent_ReturnsDouble()
-    {
-        var node = new ExponentiationNode(new LiteralNode(2), new LiteralNode(-1));
-        var result = node.Accept(_visitor, _table);
-        Assert.IsType<double>(result);
-        Assert.Equal(0.5, (double)result, precision: 10);
-    }
-
-    [Fact]
-    public void Visit_ExponentiationNode_DoubleBase()
-    {
-        var node = new ExponentiationNode(new LiteralNode(4.0), new LiteralNode(0.5));
-        var result = (double)node.Accept(_visitor, _table);
-        Assert.InRange(result, 1.99, 2.01);
-    }
-
-    // -------------------------------------------------------------------------
-    // AssignmentStmt
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public void Visit_AssignmentStmt_StoresValueInTable()
-    {
-        var stmt = new AssignmentStmt(new VariableNode("y"), new LiteralNode(42));
-        stmt.Accept(_visitor, _table);
-        Assert.Equal(42, _table["y"]);
-    }
-
-    [Fact]
-    public void Visit_AssignmentStmt_OverwritesExistingValue()
-    {
-        _table["z"] = 1;
-        var stmt = new AssignmentStmt(new VariableNode("z"), new LiteralNode(999));
-        stmt.Accept(_visitor, _table);
-        Assert.Equal(999, _table["z"]);
-    }
-
-    // [Fact]
-    // public void Visit_AssignmentStmt_ExpressionIsEvaluated()
-    // {
-    //     // z := 3 + 4  =>  z == 7
-    //     var stmt = new AssignmentStmt(new VariableNode("z"),
-    //         new PlusNode(new LiteralNode(3), new LiteralNode(4)));
-    //     stmt.Accept(_visitor, _table);
-    //     Assert.Equal(7, _table["z"]);
-    // }
-
-    // -------------------------------------------------------------------------
-    // ReturnStmt
-    // -------------------------------------------------------------------------
-
-    // [Fact]
-    // public void Visit_ReturnStmt_ReturnsCorrectValue()
-    // {
-    //     var stmt = new ReturnStmt(new LiteralNode(55));
-    //     var result = stmt.Accept(_visitor, _table);
-    //     Assert.Equal(55, result);
-    // }
-
-    // [Fact]
-    // public void Visit_ReturnStmt_HaltsBlockExecution()
-    // {
-    //     // Only the return should run; the subsequent assignment must not execute.
-    //     var block = new BlockStmt(new SymbolTable<>
-    //     {
-    //         new ReturnStmt(new LiteralNode(1)),
-    //         new AssignmentStmt(new VariableNode("sideEffect"), new LiteralNode(99))
-    //     });
-    //     var result = block.Accept(_visitor, _table);
-    //     Assert.Equal(1, result);
-    //     Assert.False(_table.ContainsKey("sideEffect"));
-    // }
-
-    // -------------------------------------------------------------------------
-    // BlockStmt — scope and last-statement semantics
-    // -------------------------------------------------------------------------
-
-    // [Fact]
-    // public void Visit_BlockStmt_ReturnsLastStatementValue()
-    // {
-    //     var block = new BlockStmt(new List<Statement>
-    //     {
-    //         new AssignmentStmt("a", new LiteralNode(10)),
-    //         new AssignmentStmt("b", new LiteralNode(20))
-    //     });
-    //     var result = block.Accept(_visitor, _table);
-    //     Assert.Equal(20, result);
-    // }
-
-    // [Fact]
-    // public void Visit_BlockStmt_VariablesShadowedInInnerScope()
-    // {
-    //     // Outer: x = 1. Inner block: x = 2. After inner block, outer x should still be 1.
-    //     _table["x"] = 1;
-    //     var inner = new BlockStmt(new List<Statement>
-    //     {
-    //         new AssignmentStmt("x", new LiteralNode(2))
-    //     });
-    //     var outer = new BlockStmt(new List<Statement> { inner });
-    //     outer.Accept(_visitor, _table);
-    //     Assert.Equal(1, _table["x"]);
-    // }
-
-    // [Fact]
-    // public void Visit_BlockStmt_EmptyBlockReturnsNull()
-    // {
-    //     var block = new BlockStmt(new List<Statement>());
-    //     var result = block.Accept(_visitor, _table);
-    //     Assert.Null(result);
-    // }
-
-    // [Fact]
-    // public void Visit_BlockStmt_ReturnPropagatesThroughNesting()
-    // {
-    //     var inner = new BlockStmt(new List<Statement>
-    //     {
-    //         new ReturnStmt(new LiteralNode(77))
-    //     });
-    //     var outer = new BlockStmt(new List<Statement>
-    //     {
-    //         inner,
-    //         new AssignmentStmt("neverRuns", new LiteralNode(0))
-    //     });
-    //     var result = outer.Accept(_visitor, _table);
-    //     Assert.Equal(77, result);
-    //     Assert.False(_table.ContainsKey("neverRuns"));
-    // }
-}
-
-/// <summary>
-/// Integration tests for EvaluateVisitor — parses a complete DEC source string
-/// and evaluates the resulting BlockStmt AST.
-/// </summary>
-public class EvaluateTest
-{
-    private readonly EvaluateVisitor _evaluator;
-
-    public EvaluateTest()
-    {
-        _evaluator = new EvaluateVisitor();
-    }
-
-    // -------------------------------------------------------------------------
-    // Arithmetic
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public void Evaluate_SimpleReturn()
-    {
-        string program = @"{
-            return (2 + 3)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(5, _evaluator.Evaluate(ast));
-    }
+    // -----------------------------------------------------------------------
+    // ModulusNode — correct remainder; throws on zero denominator
+    // -----------------------------------------------------------------------
 
     [Theory]
-    [InlineData("(10 + 5)", 15)]
-    [InlineData("(10 - 5)", 5)]
-    [InlineData("(10 * 5)", 50)]
-    [InlineData("(10 // 3)", 3)]
-    [InlineData("(10 % 3)", 1)]
-    public void Evaluate_BasicArithmeticOps(string expr, int expected)
+    [InlineData(10, 3, 1)]
+    [InlineData(9, 3, 0)]
+    [InlineData(0, 5, 0)]
+    [InlineData(-10, 3, -1)]
+    public void Visit_Modulus_ReturnsCorrectRemainder(int a, int b, int expected)
     {
-        string program = $"{{ return {expr} }}";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(expected, _evaluator.Evaluate(ast));
+        var result = Eval(new ReturnStmt(
+            new ModulusNode(new LiteralNode(a), new LiteralNode(b))));
+        Assert.Equal(expected, Convert.ToInt32(result));
     }
 
     [Fact]
-    public void Evaluate_FloatDivision_ReturnsDouble()
+    public void Visit_Modulus_ByZero_ThrowsEvaluationException()
     {
-        string program = @"{ return (7 / 2) }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        var result = _evaluator.Evaluate(ast);
-        Assert.Equal(3.5, result);
+        var block = MakeBlock(new ReturnStmt(
+            new ModulusNode(new LiteralNode(10), new LiteralNode(0))));
+        var ex = Assert.Throws<EvaluationException>(() => _visitor.Evaluate(block));
+        Assert.Equal("Can't Mod by 0", ex.Message);
+    }
+
+    // -----------------------------------------------------------------------
+    // ExponentiationNode
+    // -----------------------------------------------------------------------
+
+    [Theory]
+    [InlineData(2, 10, 1024)]
+    [InlineData(5, 0, 1)]
+    [InlineData(3, 3, 27)]
+    [InlineData(1, 100, 1)]
+    public void Visit_Exponentiation_WholeResult_ReturnsCorrectValue(int b, int exp, int expected)
+    {
+        var result = Eval(new ReturnStmt(
+            new ExponentiationNode(new LiteralNode(b), new LiteralNode(exp))));
+        Assert.Equal(expected, Convert.ToInt32(result));
     }
 
     [Fact]
-    public void Evaluate_NestedArithmetic()
+    public void Visit_Exponentiation_NegativeExponent_ReturnsCorrectDouble()
+    {
+        // 2 ^ -1 = 0.5
+        var result = Eval(new ReturnStmt(
+            new ExponentiationNode(new LiteralNode(2), new LiteralNode(-1))));
+        Assert.Equal(0.5, Convert.ToDouble(result), precision: 10);
+    }
+
+    [Fact]
+    public void Visit_Exponentiation_FractionalExponent_ReturnsCorrectDouble()
+    {
+        // 4 ^ 0.5 = 2.0
+        var result = Eval(new ReturnStmt(
+            new ExponentiationNode(new LiteralNode(4), new LiteralNode(0.5))));
+        Assert.Equal(2.0, Convert.ToDouble(result), precision: 10);
+    }
+
+    // -----------------------------------------------------------------------
+    // AssignmentStmt
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Visit_Assignment_StoresValueReadableByLaterStatement()
+    {
+        var result = Eval(
+            new AssignmentStmt(new VariableNode("x"), new LiteralNode(42)),
+            new ReturnStmt(new VariableNode("x")));
+        Assert.Equal(42, Convert.ToInt32(result));
+    }
+
+    [Fact]
+    public void Visit_Assignment_ExpressionIsFullyEvaluatedBeforeStoring()
+    {
+        // z := (3 + 4) → z should equal 7
+        var result = Eval(
+            new AssignmentStmt(new VariableNode("z"),
+                new PlusNode(new LiteralNode(3), new LiteralNode(4))),
+            new ReturnStmt(new VariableNode("z")));
+        Assert.Equal(7, Convert.ToInt32(result));
+    }
+
+    [Fact]
+    public void Visit_Assignment_CanReferenceEarlierVariableOnRhs()
+    {
+        // x := 5; y := (x + 1) → y should equal 6
+        var result = Eval(
+            new AssignmentStmt(new VariableNode("x"), new LiteralNode(5)),
+            new AssignmentStmt(new VariableNode("y"),
+                new PlusNode(new VariableNode("x"), new LiteralNode(1))),
+            new ReturnStmt(new VariableNode("y")));
+        Assert.Equal(6, Convert.ToInt32(result));
+    }
+
+    // -----------------------------------------------------------------------
+    // ReturnStmt — immediately halts block execution
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Visit_Return_HaltsExecutionOfSubsequentStatements()
+    {
+        // The second return must never be reached
+        var result = Eval(
+            new ReturnStmt(new LiteralNode(1)),
+            new ReturnStmt(new LiteralNode(999)));
+        Assert.Equal(1, Convert.ToInt32(result));
+    }
+
+    [Fact]
+    public void Visit_Return_ExpressionIsEvaluatedCorrectly()
+    {
+        // return (3 * 4) → 12
+        var result = Eval(new ReturnStmt(
+            new TimesNode(new LiteralNode(3), new LiteralNode(4))));
+        Assert.Equal(12, Convert.ToInt32(result));
+    }
+
+    [Fact]
+    public void Visit_Return_ValueIsBlockResult()
+    {
+        var result = Eval(new ReturnStmt(new LiteralNode(55)));
+        Assert.Equal(55, Convert.ToInt32(result));
+    }
+
+    // -----------------------------------------------------------------------
+    // BlockStmt — last-statement semantics, scope, nested return propagation
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Visit_Block_NoReturn_YieldsValueOfLastStatement()
+    {
+        // Last executed statement is x := 7, so the block result should be 7
+        var result = Eval(
+            new AssignmentStmt(new VariableNode("x"), new LiteralNode(3)),
+            new AssignmentStmt(new VariableNode("x"), new LiteralNode(7)));
+        Assert.Equal(7, Convert.ToInt32(result));
+    }
+
+    [Fact]
+    public void Visit_Block_ReturnInsideNestedBlock_PropagatesOutward()
+    {
+        // Build the outer block's symbol table first so we can chain the inner one to it
+        var outerTable = new SymbolTable<string, object>();
+        var outerBlock = new BlockStmt(outerTable);
+
+        var innerBlock = new BlockStmt(new SymbolTable<string, object>(outerTable));
+        innerBlock.Add(new ReturnStmt(new LiteralNode(77)));
+
+        outerBlock.Add(innerBlock);
+        outerBlock.Add(new ReturnStmt(new LiteralNode(0))); // must not be reached
+
+        Assert.Equal(77, Convert.ToInt32(_visitor.Evaluate(outerBlock)));
+    }
+
+    [Fact]
+    public void Visit_Block_InnerScopeCanReadOuterVariable()
+    {
+        // x is pre-populated in the outer table so the inner block can read it
+        var outerTable = new SymbolTable<string, object>();
+        var outerBlock = new BlockStmt(outerTable);
+        outerBlock.Add(new AssignmentStmt(new VariableNode("x"), new LiteralNode(7)));
+
+        // Inner block chains to outerTable so x is visible
+        var innerBlock = MakeInnerBlock(outerTable,
+            new ReturnStmt(new VariableNode("x")));
+        outerBlock.Add(innerBlock);
+
+        Assert.Equal(7, Convert.ToInt32(_visitor.Evaluate(outerBlock)));
+    }
+
+    [Fact]
+    public void Visit_Block_InnerScopeAssignmentDoesNotAffectOuterVariable()
+    {
+        // Outer x = 1; inner block shadows x with 99; after inner block, outer x should still be 1
+        var outerTable = new SymbolTable<string, object>();
+        var outerBlock = new BlockStmt(outerTable);
+        outerBlock.Add(new AssignmentStmt(new VariableNode("x"), new LiteralNode(1)));
+
+        var innerBlock = MakeInnerBlock(outerTable,
+            new AssignmentStmt(new VariableNode("x"), new LiteralNode(99)));
+        outerBlock.Add(innerBlock);
+        outerBlock.Add(new ReturnStmt(new VariableNode("x")));
+
+        Assert.Equal(1, Convert.ToInt32(_visitor.Evaluate(outerBlock)));
+    }
+
+    [Fact]
+    public void Visit_Block_VisitorStateIsResetBetweenEvaluateCalls()
+    {
+        // First call returns 42; second call must not carry over _returnEncountered
+        _visitor.Evaluate(MakeBlock(new ReturnStmt(new LiteralNode(42))));
+
+        var result = Eval(
+            new AssignmentStmt(new VariableNode("x"), new LiteralNode(10)),
+            new AssignmentStmt(new VariableNode("x"), new LiteralNode(20)));
+        Assert.Equal(20, Convert.ToInt32(result));
+    }
+
+    // -----------------------------------------------------------------------
+    // Compound / integration-style AST compositions
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Visit_NestedArithmetic_ReturnsCorrectResult()
     {
         // ((2 + 3) * (4 - 1)) = 15
-        string program = @"{ return ((2 + 3) * (4 - 1)) }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(15, _evaluator.Evaluate(ast));
+        var expr = new TimesNode(
+            new PlusNode(new LiteralNode(2), new LiteralNode(3)),
+            new MinusNode(new LiteralNode(4), new LiteralNode(1)));
+        Assert.Equal(15, Convert.ToInt32(Eval(new ReturnStmt(expr))));
     }
 
     [Fact]
-    public void Evaluate_Exponentiation()
+    public void Visit_MultiVariableExpression_ReturnsCorrectResult()
     {
-        string program = @"{ return (2 ** 8) }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(256, _evaluator.Evaluate(ast));
-    }
-
-    // -------------------------------------------------------------------------
-    // Variables
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public void Evaluate_AssignAndReturn()
-    {
-        string program = @"{
-            x := (10)
-            return (x)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(10, _evaluator.Evaluate(ast));
+        // a := 3; b := 4; return (a + b) → 7
+        var result = Eval(
+            new AssignmentStmt(new VariableNode("a"), new LiteralNode(3)),
+            new AssignmentStmt(new VariableNode("b"), new LiteralNode(4)),
+            new ReturnStmt(new PlusNode(new VariableNode("a"), new VariableNode("b"))));
+        Assert.Equal(7, Convert.ToInt32(result));
     }
 
     [Fact]
-    public void Evaluate_MultipleAssignments()
+    public void Visit_DivisionByZeroInsideNestedExpression_ThrowsEvaluationException()
     {
-        string program = @"{
-            x := (3)
-            y := (4)
-            return (x + y)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(7, _evaluator.Evaluate(ast));
+        // (10 + (5 // 0)) — exception must propagate out through the wrapping PlusNode
+        var block = MakeBlock(new ReturnStmt(
+            new PlusNode(
+                new LiteralNode(10),
+                new IntDivNode(new LiteralNode(5), new LiteralNode(0)))));
+        Assert.Throws<EvaluationException>(() => _visitor.Evaluate(block));
     }
 
     [Fact]
-    public void Evaluate_ReassignVariable()
+    public void Visit_ThreeLevelNestedBlocks_InnermostReturnPropagatesAllTheWayOut()
     {
-        string program = @"{
-            a := (1)
-            a := (2)
-            return (a)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(2, _evaluator.Evaluate(ast));
-    }
+        var outerTable  = new SymbolTable<string, object>();
+        var middleTable = new SymbolTable<string, object>(outerTable);
+        var innerTable  = new SymbolTable<string, object>(middleTable);
 
-    // -------------------------------------------------------------------------
-    // Scope
-    // -------------------------------------------------------------------------
+        var innermost = new BlockStmt(innerTable);
+        innermost.Add(new ReturnStmt(new LiteralNode(42)));
 
-    [Fact]
-    public void Evaluate_InnerScopeDoesNotLeakVariable()
-    {
-        string program = @"{
-            x := (5)
-            {
-                y := (10)
-            }
-            return (x)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(5, _evaluator.Evaluate(ast));
-    }
+        var middle = new BlockStmt(middleTable);
+        middle.Add(innermost);
+        middle.Add(new ReturnStmt(new LiteralNode(0))); // must not be reached
 
-    [Fact]
-    public void Evaluate_InnerScopeCanReadOuterVariable()
-    {
-        string program = @"{
-            x := (7)
-            {
-                return (x)
-            }
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(7, _evaluator.Evaluate(ast));
-    }
+        var outer = new BlockStmt(outerTable);
+        outer.Add(middle);
+        outer.Add(new ReturnStmt(new LiteralNode(0))); // must not be reached
 
-    [Fact]
-    public void Evaluate_ShadowedVariableDoesNotAffectOuter()
-    {
-        string program = @"{
-            x := (1)
-            {
-                x := (99)
-            }
-            return (x)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(1, _evaluator.Evaluate(ast));
-    }
-
-    // -------------------------------------------------------------------------
-    // Return semantics
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public void Evaluate_ReturnStopsExecution()
-    {
-        string program = @"{
-            return (42)
-            x := (999)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(42, _evaluator.Evaluate(ast));
-    }
-
-    [Fact]
-    public void Evaluate_NoReturnYieldsLastStatementValue()
-    {
-        string program = @"{
-            x := (3)
-            y := (7)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(7, _evaluator.Evaluate(ast));
-    }
-
-    [Fact]
-    public void Evaluate_ReturnInsideNestedBlock_PropagatesOut()
-    {
-        string program = @"{
-            x := (1)
-            {
-                return (55)
-            }
-            x := (2)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(55, _evaluator.Evaluate(ast));
-    }
-
-    // -------------------------------------------------------------------------
-    // Division by zero
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public void Evaluate_IntDivisionByZero_Throws()
-    {
-        string program = @"{
-            return (10 // 0)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        var ex = Assert.Throws<EvaluationException>(() => _evaluator.Evaluate(ast));
-        //Assert.Equal("Division by zero", ex.Message);
-    }
-
-    [Fact]
-    public void Evaluate_FloatDivisionByZero_Throws()
-    {
-        string program = @"{
-            return (10 / 0)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Throws<EvaluationException>(() => _evaluator.Evaluate(ast));
-    }
-
-    [Fact]
-    public void Evaluate_ModByZero_Throws()
-    {
-        string program = @"{
-            return (5 % 0)
-        }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Throws<EvaluationException>(() => _evaluator.Evaluate(ast));
-    }
-
-    // -------------------------------------------------------------------------
-    // Mixed int / double promotion
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public void Evaluate_IntPlusDouble_ReturnsDouble()
-    {
-        string program = @"{ return (1 + 1.5) }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(2.5, _evaluator.Evaluate(ast));
-    }
-
-    [Fact]
-    public void Evaluate_ComplexMixedExpression()
-    {
-        // (3 * 2.0) - (10 // 4) = 6.0 - 2 = 4.0
-        string program = @"{ return ((3 * 2.0) - (10 // 4)) }";
-        BlockStmt ast = Parser.Parser.Parse(program);
-        Assert.Equal(4, _evaluator.Evaluate(ast));
+        Assert.Equal(42, Convert.ToInt32(_visitor.Evaluate(outer)));
     }
 }

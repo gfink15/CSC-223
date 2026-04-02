@@ -169,13 +169,13 @@ namespace AST
         public bool Visit(BlockStmt statement, Tuple<SymbolTable<string, object>, Statement> tuple)
         {
             var symbolTable = new SymbolTable<string, object>(tuple.Item1);
-            bool error = false;
+            bool noError = true;
 
             foreach (Statement s in statement.Statements)
             {
-                if (!error)
+                if (noError)
                 {
-                    error = s.Accept(this, new Tuple<SymbolTable<string, object>, Statement>(symbolTable, statement));
+                    noError = s.Accept(this, new Tuple<SymbolTable<string, object>, Statement>(symbolTable, statement));
                 }
                 else
                 {
@@ -183,7 +183,7 @@ namespace AST
                 }
             }
 
-            return !error;
+            return noError;
 
         }
 

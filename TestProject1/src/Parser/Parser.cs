@@ -219,7 +219,7 @@ public static class Parser
         l.RemoveAt(0);
 
         // Register variable in the current scope
-        s.Add(variable_name, default);
+        s[variable_name] = default;
 
         return _builder.CreateAssignmentStmt(ParseVariableNode(variable_name), ParseExpression(l));
     }

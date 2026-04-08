@@ -30,6 +30,10 @@ public class DiGraph<T> where T : notnull
         {
             throw new ArgumentException("Both the Source and the Destination must exist.");
         }
+        else if (_adjacencyList[source].Contains(destination))
+        {
+            return false;
+        }
         else
         {
             _adjacencyList[source].Add(destination);

@@ -48,15 +48,17 @@ public class DiGraph<T> where T : notnull
         }
         return true;
     }
-    
+
     public bool RemoveEdge(T source, T destination)
     {
         throw new NotImplementedException();
     }
+    
     public bool HasEdge(T source, T destination)
     {
-        throw new NotImplementedException();
+        return _adjacencyList[source].Contains(destination);
     }
+
     public List<T> GetNeighbors(T vertex)
     {
         throw new NotImplementedException();

@@ -88,9 +88,10 @@ public class DiGraph<T> where T : notnull
         if (!_adjacencyList.ContainsKey(vertex)) throw new ArgumentException("Vertex not found!");
         return _adjacencyList[vertex].ToList();
     }
+
     public IEnumerable<T> GetVertices()
     {
-        foreach (T vertex in _adjacencyList.Keys())
+        foreach (T vertex in _adjacencyList.Keys)
         {
             yield return vertex;
         }
@@ -102,7 +103,7 @@ public class DiGraph<T> where T : notnull
     public int EdgeCount()
     {
         int c = 0;
-        foreach (DLL list in _adjacencyList.Values())
+        foreach (DLL list in _adjacencyList.Values)
         {
             c += list.Count;
         }

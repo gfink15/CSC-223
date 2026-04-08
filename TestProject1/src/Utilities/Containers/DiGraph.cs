@@ -34,7 +34,14 @@ public class DiGraph<T> where T : notnull
     }
     public bool RemoveEdge(T source, T destination)
     {
-        throw new NotImplementedException();
+        if (!_adjacencyList.Contains(source) || !_adjacencyList.Contains(destination)) throw new ArgumentException("Must provide valid source/destinations");
+        if (HasEdge(source, destination))
+        {
+            _adjacencyList[source].Remove(destination);
+            _adjacencyList[destination].Remove(source);
+            return true;
+        }
+        return false;
     }
     public bool HasEdge(T source, T destination)
     {

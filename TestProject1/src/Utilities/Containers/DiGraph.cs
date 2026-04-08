@@ -51,7 +51,7 @@ public class DiGraph<T> where T : notnull
     
     public bool RemoveEdge(T source, T destination)
     {
-        if (!_adjacencyList.Contains(source) || !_adjacencyList.Contains(destination)) throw new ArgumentException("Must provide valid source/destinations");
+        if (!_adjacencyList.ContainsKey(source) || !_adjacencyList.ContainsKey(destination)) throw new ArgumentException("Must provide valid source/destinations");
         if (HasEdge(source, destination))
         {
             _adjacencyList[source].Remove(destination);

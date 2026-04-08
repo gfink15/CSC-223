@@ -109,7 +109,7 @@ public class DiGraph<T> where T : notnull
         }
         return c;
     }
-    public string ToString()
+    public override string ToString()
     {
         string r = "";
         foreach (KeyValuePair<T, DLL<T>> vals in _adjacencyList)

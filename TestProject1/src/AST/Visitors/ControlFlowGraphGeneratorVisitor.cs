@@ -12,6 +12,7 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement, Statement>
 {
 
     public CFG _cfg = new CFG();
+    private Statement last;
     public Statement Visit(PlusNode node, Statement param)
     {
         return null;
@@ -59,17 +60,27 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement, Statement>
 
     public Statement Visit(AssignmentStmt node, Statement param)
     {
-        // Add Vertex
-        // Add this node to the previous as a directed edge
+        _cfg.AddVertex(node);
+        _cfg.AddEdge(param, node);
+        return null;
     }
 
     public Statement Visit(ReturnStmt node, Statement param)
     {
-        throw new NotImplementedException();
+        _cfg.AddVertex(node);
+        _cfg.AddEdge(param, node);
+        return null;
     }
 
     public Statement Visit(BlockStmt node, Statement param)
     {
-        throw new NotImplementedException();
+        if (_cfg.VertexCount() == 0) node.Statements[0].Accept(this, null);
+        else node.Statements[0].Accept(this, last);
+        for (int i = 0; i < node.Statements.Count; i++)
+        {
+            last = node.Statements[i];
+            node.Statements[i].Accept(this, node.Statements[i-1]);
+        }
+        return null;
     }
 }

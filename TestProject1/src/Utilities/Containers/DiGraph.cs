@@ -1,10 +1,14 @@
+
+
+using System.Runtime.CompilerServices;
+
+
 /**
  * 
  * 
  * @author Graham Fink, Mridul Agrawal
  * @date   4/8/2026
  */
-
 namespace Utilities.Containers;
 
 public class DiGraph<T> where T : notnull
@@ -55,7 +59,6 @@ public class DiGraph<T> where T : notnull
         if (HasEdge(source, destination))
         {
             _adjacencyList[source].Remove(destination);
-            _adjacencyList[destination].Remove(source);
             return true;
         }
         return false;
@@ -68,22 +71,40 @@ public class DiGraph<T> where T : notnull
 
     public List<T> GetNeighbors(T vertex)
     {
-        throw new NotImplementedException();
+        if (!_adjacencyList.ContainsKey(vertex)) throw new ArgumentException("Vertex not found!");
+        return _adjacencyList[vertex];
     }
     public IEnumerable<T> GetVertices()
     {
-        throw new NotImplementedException();
+        foreach (T vertex in _adjacencyList.Keys())
+        {
+            yield return vertex;
+        }
     }
     public int VertexCount()
     {
-        throw new NotImplementedException();
+        return _adjacencyList.Count();
     }
     public int EdgeCount()
     {
-        throw new NotImplementedException();
+        int c = 0;
+        foreach (DLL list in _adjacencyList.Values())
+        {
+            c += list.Count;
+        }
+        return c;
     }
     public string ToString()
     {
-        throw new NotImplementedException();
+        string r = "";
+        foreach (Tuple<T, DLL<T>> vals in _adjacencyList)
+        {
+            r += "Node "+vals.Item1+" connects to: ";
+            foreach (T item in vals.Item2)
+            {
+                r += item.ToString() + ", ";
+            }
+        }
+        return r;
     }
 }

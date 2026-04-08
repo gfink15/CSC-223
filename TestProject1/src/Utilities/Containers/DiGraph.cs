@@ -32,6 +32,23 @@ public class DiGraph<T> where T : notnull
             return true;
         }
     }
+
+    public bool RemoveVertex(T vertex)
+    {
+        if (!_adjacencyList.ContainsKey(vertex))
+        {
+            throw new ArgumentException("Vertex not found!");
+        }
+        else
+        {
+            foreach(KeyValuePair<T, DLL<T>> item in _adjacencyList)
+            {
+                return true;
+            }
+        }
+        return true;
+    }
+    
     public bool RemoveEdge(T source, T destination)
     {
         if (!_adjacencyList.Contains(source) || !_adjacencyList.Contains(destination)) throw new ArgumentException("Must provide valid source/destinations");

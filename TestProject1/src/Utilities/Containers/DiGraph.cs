@@ -88,6 +88,7 @@ public class DiGraph<T> where T : notnull
         if (!_adjacencyList.ContainsKey(vertex)) throw new ArgumentException("Vertex not found!");
         return _adjacencyList[vertex].ToList();
     }
+
     public IEnumerable<T> GetVertices()
     {
         foreach (T vertex in _adjacencyList.Keys)

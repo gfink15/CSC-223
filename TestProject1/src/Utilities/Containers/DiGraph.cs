@@ -180,7 +180,7 @@ public class DiGraph<T> where T : notnull
     /// Builds a readable string of each vertex and its outgoing neighbors.
     /// </summary>
     /// <returns>A concatenated graph description.</returns>
-    public string ToString()
+    public override string ToString()
     {
         string r = "";
         foreach (KeyValuePair<T, DLL<T>> vals in _adjacencyList)

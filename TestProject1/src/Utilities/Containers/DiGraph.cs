@@ -41,21 +41,30 @@ public class DiGraph<T> where T : notnull
         }
         else
         {
+            _adjacencyList.Remove(vertex);
             foreach(KeyValuePair<T, DLL<T>> item in _adjacencyList)
             {
-                return true;
+                item.Value.Remove(vertex);
             }
+            return true;
         }
-        return true;
     }
 
+    /// <summary>
+    /// Removes a directed edge from source to destination.
+    /// </summary>
+    /// <param name="source">The vertex where the edge starts.</param>
+    /// <param name="destination">The vertex where the edge ends.</param>
+    /// <returns><c>true</c> if the edge existed and was removed; otherwise, <c>false</c>.</returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when either source or destination is not a valid vertex in the graph.
+    /// </exception>
     public bool RemoveEdge(T source, T destination)
     {
         if (!_adjacencyList.ContainsKey(source) || !_adjacencyList.ContainsKey(destination)) throw new ArgumentException("Must provide valid source/destinations");
         if (HasEdge(source, destination))
         {
             _adjacencyList[source].Remove(destination);
-            _adjacencyList[destination].Remove(source);
             return true;
         }
         return false;

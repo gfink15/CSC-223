@@ -90,7 +90,7 @@ public class DiGraph<T> where T : notnull
     }
     public IEnumerable<T> GetVertices()
     {
-        foreach (T vertex in _adjacencyList.Keys())
+        foreach (T vertex in _adjacencyList.Keys)
         {
             yield return vertex;
         }
@@ -102,7 +102,7 @@ public class DiGraph<T> where T : notnull
     public int EdgeCount()
     {
         int c = 0;
-        foreach (DLL list in _adjacencyList.Values())
+        foreach (DLL<T> list in _adjacencyList.Values)
         {
             c += list.Count;
         }
@@ -111,10 +111,10 @@ public class DiGraph<T> where T : notnull
     public string ToString()
     {
         string r = "";
-        foreach (Tuple<T, DLL<T>> vals in _adjacencyList)
+        foreach (KeyValuePair<T, DLL<T>> vals in _adjacencyList)
         {
-            r += "Node "+vals.Item1+" connects to: ";
-            foreach (T item in vals.Item2)
+            r += "Node "+vals.Key+" connects to: ";
+            foreach (T item in vals.Value)
             {
                 r += item.ToString() + ", ";
             }

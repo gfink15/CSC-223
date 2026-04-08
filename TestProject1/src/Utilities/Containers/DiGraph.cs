@@ -48,4 +48,33 @@ public class DiGraph<T> where T : notnull
         }
         return true;
     }
+    
+    public bool RemoveEdge(T source, T destination)
+    {
+        throw new NotImplementedException();
+    }
+    public bool HasEdge(T source, T destination)
+    {
+        throw new NotImplementedException();
+    }
+    public List<T> GetNeighbors(T vertex)
+    {
+        throw new NotImplementedException();
+    }
+    public IEnumerable<T> GetVertices()
+    {
+        throw new NotImplementedException();
+    }
+    public int VertexCount()
+    {
+        throw new NotImplementedException();
+    }
+    public int EdgeCount()
+    {
+        throw new NotImplementedException();
+    }
+    public string ToString()
+    {
+        throw new NotImplementedException();
+    }
 }

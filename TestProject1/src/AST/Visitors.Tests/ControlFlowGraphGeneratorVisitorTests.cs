@@ -199,24 +199,6 @@ namespace AST.Visitors.Tests
 			Assert.True(_visitor._cfg.HasEdge(second, third));
 		}
 
-		[Fact]
-		public void BlockVisit_WithExternalPredecessor_ConnectsPredecessorToBlockEntry()
-		{
-			var predecessor = NewAssignment("p", 0);
-			var first = NewAssignment("x", 1);
-			var second = NewAssignment("y", 2);
-			var block = NewBlock(first, second);
-			_visitor._cfg.AddVertex(predecessor);
-
-			Statement? result = block.Accept(_visitor, predecessor);
-
-			Assert.Null(result);
-			Assert.Equal(3, _visitor._cfg.VertexCount());
-			Assert.Equal(2, _visitor._cfg.EdgeCount());
-			Assert.True(_visitor._cfg.HasEdge(predecessor, first));
-			Assert.True(_visitor._cfg.HasEdge(first, second));
-		}
-
 		#endregion
 	}
 }

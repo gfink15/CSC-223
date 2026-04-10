@@ -88,7 +88,7 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement?, Statement?>
         else node.Statements[0].Accept(this, last);
         for (int i = 1; i < node.Statements.Count; i++)
         {
-            node.Statements[i].Accept(this, node.Statements[i-1]);
+            node.Statements[i].Accept(this, last);
             //last = node.Statements[i];
 
         }

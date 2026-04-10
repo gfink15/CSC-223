@@ -200,5 +200,22 @@ namespace AST.Visitors.Tests
 		}
 
 		#endregion
+		[Fact]
+		public void ManualTest()
+		{
+			string program = @"{
+			x := (1)
+			y := (2)
+			{
+				z := (3)
+				a := (4)
+				b := (z + a)
+				return b
+			}
+			c := (8)
+			}";
+			var parsed = Parser.Parser.Parse(program);
+			//var visited = parsed.Statements[0].Accept(_visitor, this);
+		}
 	}
 }

@@ -111,7 +111,7 @@ namespace AST
             // Evaluate both sides independently to collect all errors (no short-circuit).
             bool left = node.Left.Accept(this, tuple);
             bool right = node.Right.Accept(this, tuple);
-            return left & right;
+            return left && right;
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace AST
             // Evaluate both sides independently to collect all errors (no short-circuit).
             bool left = node.Left.Accept(this, tuple);
             bool right = node.Right.Accept(this, tuple);
-            return left & right;
+            return left && right;
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace AST
             // Evaluate both sides independently to collect all errors (no short-circuit).
             bool left = node.Left.Accept(this, tuple);
             bool right = node.Right.Accept(this, tuple);
-            return left & right;
+            return left && right;
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace AST
             // Evaluate both sides independently to collect all errors (no short-circuit).
             bool left = node.Left.Accept(this, tuple);
             bool right = node.Right.Accept(this, tuple);
-            return left & right;
+            return left && right;
         }
 
         /// <summary>
@@ -199,7 +199,7 @@ namespace AST
             // Evaluate both sides independently to collect all errors (no short-circuit).
             bool left = node.Left.Accept(this, tuple);
             bool right = node.Right.Accept(this, tuple);
-            return left & right;
+            return left && right;
         }
 
         #endregion

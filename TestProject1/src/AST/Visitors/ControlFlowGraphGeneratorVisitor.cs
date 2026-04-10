@@ -1,3 +1,11 @@
+/**
+ * Control Flow Graph Generator Visitor: builds a CFG from AST statements.
+ * Claude AI was only used for writing XML and inline comments.
+ * 
+ * @author Graham Fink, Mridul Agrawal
+ * @date   4/9/2026
+ */
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;

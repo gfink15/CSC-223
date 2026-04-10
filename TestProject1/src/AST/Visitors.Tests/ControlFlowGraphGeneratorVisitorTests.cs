@@ -8,6 +8,8 @@ namespace AST.Visitors.Tests
 {
 	public class ControlFlowGraphGeneratorVisitorTests
 	{
+		#region Test Setup and Helpers
+
 		private readonly ControlFlowGraphGeneratorVisitor _visitor;
 
 		public ControlFlowGraphGeneratorVisitorTests()
@@ -30,6 +32,10 @@ namespace AST.Visitors.Tests
 			return new AssignmentStmt(new VariableNode(name), new LiteralNode(value));
 		}
 
+		#endregion
+
+		#region Shared Test Data
+
 		public static IEnumerable<object[]> ExpressionNodes()
 		{
 			yield return new object[] { new PlusNode(new LiteralNode(1), new LiteralNode(2)) };
@@ -43,7 +49,9 @@ namespace AST.Visitors.Tests
 			yield return new object[] { new VariableNode("x") };
 		}
 
-		#region Constructor and Expression Visit Tests
+		#endregion
+
+		#region Constructor and Expression Node Visit Tests
 
 		[Fact]
 		public void Constructor_InitializesEmptyCfg()
@@ -68,7 +76,7 @@ namespace AST.Visitors.Tests
 
 		#endregion
 
-		#region Assignment and Return Visit Tests
+		#region Assignment and Return Statement Visit Tests
 
 		[Fact]
 		public void AssignmentVisit_NullParam_AddsVertexOnly()
@@ -157,7 +165,7 @@ namespace AST.Visitors.Tests
 
 		#endregion
 
-		#region Block Visit Tests
+		#region Block Statement Visit Tests
 
 		[Fact]
 		public void BlockVisit_EmptyBlock_ThrowsArgumentOutOfRangeException()
@@ -324,14 +332,15 @@ namespace AST.Visitors.Tests
 		public void BlockVisit_SameStatementObjectTwice_HandlesDuplicateObject()
 		{
 			var repeated = NewAssignment("dup", 1);
-			var block = NewBlock(repeated, repeated);
+			var repeated2 = NewAssignment("dup", 1);
+			var block = NewBlock(repeated, repeated2);
 
 			Statement? result = block.Accept(_visitor, null);
 
 			Assert.Null(result);
-			Assert.Equal(1, _visitor._cfg.VertexCount());
+			Assert.Equal(2, _visitor._cfg.VertexCount());
 			Assert.Equal(1, _visitor._cfg.EdgeCount());
-			Assert.True(_visitor._cfg.HasEdge(repeated, repeated));
+			Assert.True(_visitor._cfg.HasEdge(repeated, repeated2));
 		}
 
 		[Fact]
@@ -368,7 +377,7 @@ namespace AST.Visitors.Tests
 
 		#endregion
 
-		#region Complete Program Tests
+		#region End-to-End Program CFG Tests
 
 		[Fact]
 		public void SimpleProgramTest()

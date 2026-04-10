@@ -119,6 +119,42 @@ namespace AST.Visitors.Tests
 			Assert.True(_visitor._cfg.HasEdge(previous, returnStmt));
 		}
 
+		[Fact]
+		public void ReturnVisit_NullParam_AddsVertexOnly()
+		{
+			var returnStmt = new ReturnStmt(new LiteralNode(5));
+
+			Statement? result = returnStmt.Accept(_visitor, null);
+
+			Assert.Null(result);
+			Assert.Equal(1, _visitor._cfg.VertexCount());
+			Assert.Equal(0, _visitor._cfg.EdgeCount());
+		}
+
+		[Fact]
+		public void ReturnVisit_WithMissingPredecessor_ThrowsArgumentException()
+		{
+			var missingPrevious = NewAssignment("a", 1);
+			var returnStmt = new ReturnStmt(new VariableNode("a"));
+
+			Assert.Throws<ArgumentException>(() => returnStmt.Accept(_visitor, missingPrevious));
+		}
+
+		[Fact]
+		public void AssignmentVisit_WithSamePredecessorAndCurrentTwice_DoesNotAddDuplicateEdge()
+		{
+			var previous = NewAssignment("a", 1);
+			var current = NewAssignment("b", 2);
+			_visitor._cfg.AddVertex(previous);
+
+			current.Accept(_visitor, previous);
+			current.Accept(_visitor, previous);
+
+			Assert.Equal(2, _visitor._cfg.VertexCount());
+			Assert.Equal(1, _visitor._cfg.EdgeCount());
+			Assert.True(_visitor._cfg.HasEdge(previous, current));
+		}
+
 		#endregion
 
 		#region Block Visit Tests
@@ -143,6 +179,41 @@ namespace AST.Visitors.Tests
 			Assert.Null(result);
 			Assert.Equal(2, _visitor._cfg.VertexCount());
 			Assert.Equal(1, _visitor._cfg.EdgeCount());
+			Assert.True(_visitor._cfg.HasEdge(first, second));
+		}
+
+		[Fact]
+		public void BlockVisit_WithThreeStatements_BuildsLinearFlowEdges()
+		{
+			var first = NewAssignment("x", 1);
+			var second = NewAssignment("y", 2);
+			var third = NewAssignment("z", 3);
+			var block = NewBlock(first, second, third);
+
+			Statement? result = block.Accept(_visitor, null);
+
+			Assert.Null(result);
+			Assert.Equal(3, _visitor._cfg.VertexCount());
+			Assert.Equal(2, _visitor._cfg.EdgeCount());
+			Assert.True(_visitor._cfg.HasEdge(first, second));
+			Assert.True(_visitor._cfg.HasEdge(second, third));
+		}
+
+		[Fact]
+		public void BlockVisit_WithExternalPredecessor_ConnectsPredecessorToBlockEntry()
+		{
+			var predecessor = NewAssignment("p", 0);
+			var first = NewAssignment("x", 1);
+			var second = NewAssignment("y", 2);
+			var block = NewBlock(first, second);
+			_visitor._cfg.AddVertex(predecessor);
+
+			Statement? result = block.Accept(_visitor, predecessor);
+
+			Assert.Null(result);
+			Assert.Equal(3, _visitor._cfg.VertexCount());
+			Assert.Equal(2, _visitor._cfg.EdgeCount());
+			Assert.True(_visitor._cfg.HasEdge(predecessor, first));
 			Assert.True(_visitor._cfg.HasEdge(first, second));
 		}
 

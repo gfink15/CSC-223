@@ -116,6 +116,11 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement?, Statement?>
     {
         _cfg.AddVertex(node);
 
+        if (_cfg.Start == null)
+        {
+            _cfg.Start = node;
+        }
+
         // Add Edge only if a predecessor is present in the param.
         if (param != null)
         {
@@ -136,6 +141,11 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement?, Statement?>
     public Statement? Visit(ReturnStmt node, Statement? param)
     {
         _cfg.AddVertex(node);
+
+        if (_cfg.Start == null)
+        {
+            _cfg.Start = node;
+        }
 
         // Add Edge only if a predecessor is present in the param.
         if (param != null)

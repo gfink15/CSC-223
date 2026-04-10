@@ -210,12 +210,34 @@ namespace AST.Visitors.Tests
 				z := (3)
 				a := (4)
 				b := (z + a)
-				return b
+				return (b)
 			}
 			c := (8)
 			}";
 			var parsed = Parser.Parser.Parse(program);
-			//var visited = parsed.Statements[0].Accept(_visitor, this);
+
+			Statement? result = parsed.Accept(_visitor, null);
+
+			var x = (AssignmentStmt)parsed.Statements[0];
+			var y = (AssignmentStmt)parsed.Statements[1];
+			var innerBlock = (BlockStmt)parsed.Statements[2];
+			var c = (AssignmentStmt)parsed.Statements[3];
+
+			var z = (AssignmentStmt)innerBlock.Statements[0];
+			var a = (AssignmentStmt)innerBlock.Statements[1];
+			var b = (AssignmentStmt)innerBlock.Statements[2];
+			var returnStmt = (ReturnStmt)innerBlock.Statements[3];
+
+			Assert.Null(result);
+			Assert.Equal(7, _visitor._cfg.VertexCount());
+			Assert.Equal(5, _visitor._cfg.EdgeCount());
+
+			Assert.True(_visitor._cfg.HasEdge(x, y));
+			Assert.True(_visitor._cfg.HasEdge(y, z));
+			Assert.True(_visitor._cfg.HasEdge(z, a));
+			Assert.True(_visitor._cfg.HasEdge(a, b));
+			Assert.True(_visitor._cfg.HasEdge(b, returnStmt));
+			Assert.False(_visitor._cfg.HasEdge(returnStmt, c));
 		}
 	}
 }

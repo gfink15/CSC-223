@@ -66,6 +66,7 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement?, Statement?>
         {
             _cfg.AddEdge(param, node);
         }
+        last = node;
         return null;
     }
 
@@ -77,6 +78,7 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement?, Statement?>
             _cfg.AddEdge(param, node);
         }
         return_encountered = true;
+        last = null;
         return null;
     }
 
@@ -84,10 +86,10 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement?, Statement?>
     {
         if (_cfg.VertexCount() == 0) node.Statements[0].Accept(this, null);
         else node.Statements[0].Accept(this, last);
-        for (int i = 0; i < node.Statements.Count; i++)
+        for (int i = 1; i < node.Statements.Count; i++)
         {
             node.Statements[i].Accept(this, node.Statements[i-1]);
-            last = node.Statements[i];
+            //last = node.Statements[i];
 
         }
         return null;

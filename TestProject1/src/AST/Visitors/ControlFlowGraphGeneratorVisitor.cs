@@ -13,6 +13,7 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement?, Statement?>
 
     public CFG _cfg = new CFG();
     private Statement? last;
+    private bool return_encountered = false;
     public Statement? Visit(PlusNode node, Statement? param)
     {
         return null;
@@ -75,6 +76,7 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement?, Statement?>
         {
             _cfg.AddEdge(param, node);
         }
+        return_encountered = true;
         return null;
     }
 
@@ -84,8 +86,9 @@ public class ControlFlowGraphGeneratorVisitor : IVisitor<Statement?, Statement?>
         else node.Statements[0].Accept(this, last);
         for (int i = 0; i < node.Statements.Count; i++)
         {
-            last = node.Statements[i];
             node.Statements[i].Accept(this, node.Statements[i-1]);
+            last = node.Statements[i];
+
         }
         return null;
     }

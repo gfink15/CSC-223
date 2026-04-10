@@ -324,14 +324,15 @@ namespace AST.Visitors.Tests
 		public void BlockVisit_SameStatementObjectTwice_HandlesDuplicateObject()
 		{
 			var repeated = NewAssignment("dup", 1);
-			var block = NewBlock(repeated, repeated);
+			var repeated2 = NewAssignment("dup", 1);
+			var block = NewBlock(repeated, repeated2);
 
 			Statement? result = block.Accept(_visitor, null);
 
 			Assert.Null(result);
-			Assert.Equal(1, _visitor._cfg.VertexCount());
+			Assert.Equal(2, _visitor._cfg.VertexCount());
 			Assert.Equal(1, _visitor._cfg.EdgeCount());
-			Assert.True(_visitor._cfg.HasEdge(repeated, repeated));
+			Assert.True(_visitor._cfg.HasEdge(repeated, repeated2));
 		}
 
 		[Fact]

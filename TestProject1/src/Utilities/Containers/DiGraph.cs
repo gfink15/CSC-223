@@ -8,6 +8,8 @@
 
 
 using System.Runtime.CompilerServices;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace Utilities.Containers;
 
@@ -192,5 +194,138 @@ public class DiGraph<T> where T : notnull
             }
         }
         return r;
+    }
+
+    /// <summary>
+    /// Vertex coloring used during DFS traversal.
+    /// <list type="bullet">
+    ///   <item><description><c>WHITE</c> — not yet discovered.</description></item>
+    ///   <item><description><c>PURPLE</c> — discovered, but its DFS call has not finished (still on the recursion stack).</description></item>
+    ///   <item><description><c>BLACK</c> — fully processed; all descendants visited.</description></item>
+    /// </list>
+    /// </summary>
+    public enum VertexColor { WHITE, PURPLE, BLACK }
+
+    /// <summary>
+    /// Runs a depth-first search over the entire graph and returns vertices
+    /// in reverse postorder (the order they finish, with the last-finished
+    /// vertex on top of the stack).
+    ///
+    /// Popping the returned stack yields a valid topological ordering when the
+    /// graph is a DAG. It is also the ordering used as input to Kosaraju's
+    /// SCC algorithm in <see cref="FindStronglyConnectedComponents"/>.
+    /// </summary>
+    /// <returns>A stack of every vertex, ordered by DFS finish time (latest on top).</returns>
+    public Stack<T> DepthFirstSearch()
+    {
+        var colors = new Dictionary<T, VertexColor>();
+        IEnumerable<T> vertices = GetVertices();
+        var dfs_stack = new Stack<T>();
+
+        // Start every vertex as undiscovered.
+        foreach (T vertex in vertices) colors.TryAdd(vertex, VertexColor.WHITE);
+
+        // Launch a DFS from each undiscovered vertex so disconnected
+        // components are all covered.
+        foreach (T vertex in colors.Keys)
+        {
+            if (colors[vertex] == VertexColor.WHITE) DFS_Visit(vertex, colors, dfs_stack);
+        }
+
+        return dfs_stack;
+    }
+
+    /// <summary>
+    /// Recursive DFS helper. Marks <paramref name="vertex"/> as in-progress,
+    /// recurses into each unvisited neighbor, then marks it finished and
+    /// pushes it onto <paramref name="dfs_stack"/> so the stack ends up in
+    /// reverse postorder.
+    /// </summary>
+    /// <param name="vertex">The vertex to visit.</param>
+    /// <param name="colors">Shared color map tracking each vertex's DFS state.</param>
+    /// <param name="dfs_stack">Stack that collects vertices in finish order.</param>
+    private void DFS_Visit(T vertex, Dictionary<T, VertexColor> colors, Stack<T> dfs_stack)
+    {
+        // Mark as "in progress" — stops cycles from recursing forever.
+        colors[vertex] = VertexColor.PURPLE;
+
+        foreach (T adj_vertex in GetNeighbors(vertex))
+        {
+            if (colors[adj_vertex] == VertexColor.WHITE) DFS_Visit(adj_vertex, colors, dfs_stack);
+        }
+
+        // All descendants done — record this vertex's finish time by pushing it.
+        colors[vertex] = VertexColor.BLACK;
+        dfs_stack.Push(vertex);
+    }
+
+    /// <summary>
+    /// Returns a new graph with the same vertices but every edge reversed:
+    /// for every edge <c>u -> v</c> in this graph, the returned graph contains
+    /// <c>v -> u</c>. The original graph is not modified.
+    /// </summary>
+    /// <returns>A new <see cref="DiGraph{T}"/> representing the transpose.</returns>
+    public DiGraph<T> Transpose()
+    {
+        var reversed_graph = new DiGraph<T>();
+
+        // Copy the vertex set first so AddEdge below always has both endpoints.
+        foreach (T vertex in GetVertices()) reversed_graph.AddVertex(vertex);
+
+        // For each original edge u -> v, add the reversed edge v -> u.
+        foreach (T vertex in _adjacencyList.Keys)
+        {
+            foreach (T adj_vertex in GetNeighbors(vertex)) reversed_graph.AddEdge(adj_vertex, vertex);
+        }
+
+        return reversed_graph;
+    }
+
+    /// <summary>
+    /// Finds every strongly connected component (SCC) of the graph using
+    /// Kosaraju's algorithm. An SCC is a maximal set of vertices in which
+    /// every vertex can reach every other via directed edges; the SCCs
+    /// partition the vertex set (each vertex appears in exactly one).
+    ///
+    /// Algorithm:
+    ///   1. Run DFS on this graph and collect finish-order in a stack.
+    ///   2. Transpose the graph (reverse every edge).
+    ///   3. Pop vertices from the stack; each DFS on the transpose that starts
+    ///      from an unvisited vertex discovers exactly one SCC.
+    /// </summary>
+    /// <returns>
+    /// A list of SCCs. Each inner list contains the vertices belonging to one
+    /// SCC. The order of SCCs and the order of vertices within them is an
+    /// implementation detail and should not be relied on.
+    /// </returns>
+    public List<List<T>> FindStronglyConnectedComponents()
+    {
+        // Step 1: finish-order of a DFS on the original graph.
+        Stack<T> dfs_stack = DepthFirstSearch();
+        List<List<T>> scc = new List<List<T>>();
+
+        // Step 2: edges reversed so DFS on this graph explores SCCs inward.
+        DiGraph<T> reversed_graph = Transpose();
+        var colors = new Dictionary<T, VertexColor>();
+
+        // Mark every vertex undiscovered for the second-pass DFS.
+        foreach (T vertex in dfs_stack) colors.TryAdd(vertex, VertexColor.WHITE);
+
+        // Step 3: walk vertices in reverse finish order (top of the stack
+        // first). Each DFS_Visit on the transpose that starts from a WHITE
+        // vertex visits exactly the vertices of one SCC.
+        foreach (T vertex in dfs_stack)
+        {
+            // BLACK means this vertex was already included in a previously
+            // discovered SCC — skip it to avoid double-counting.
+            if (colors[vertex] != VertexColor.BLACK)
+            {
+                Stack<T> local_dfs_stack = new Stack<T>();
+                reversed_graph.DFS_Visit(vertex, colors, local_dfs_stack);
+                scc.Add(local_dfs_stack.ToList());
+            }
+        }
+
+        return scc;
     }
 }
